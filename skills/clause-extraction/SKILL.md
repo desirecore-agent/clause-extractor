@@ -247,9 +247,9 @@ evidence:
 
 ```yaml
 name_variants:
-  - {text: 云澈信息技术（上海）有限公司, page: 1, clause_no: 首部, is_defined_term: false}
+  - {text: 云梯信息技术（示例）有限公司, page: 1, clause_no: 首部, is_defined_term: false}
   - {text: 甲方, page: 1, clause_no: 首部, is_defined_term: true}
-  - {text: 云澈科技（上海）有限公司, page: 6, clause_no: "10.4", is_defined_term: false}
+  - {text: 云梯科技（示例）有限公司, page: 6, clause_no: "10.4", is_defined_term: false}
 ```
 
 **硬规则：名称形态不同的全部并列记录，不合并、不归一、不判断哪个是笔误。**
