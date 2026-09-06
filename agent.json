@@ -84,9 +84,9 @@
   "command_authority": {
     "enabled": true,
     "allowed_targets": [
-      "contract-review-lead",
-      "risk-scanner",
-      "jurisdiction-auditor"
+      "he-tong-shen-cha-tong-chou-guan",
+      "he-tong-feng-xian-shi-bie-guan",
+      "fa-yu-he-gui-guan"
     ]
   },
   "default_enabled": {
