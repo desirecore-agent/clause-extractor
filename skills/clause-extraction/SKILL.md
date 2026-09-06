@@ -12,7 +12,7 @@ description: >-
   Use when converting a gated contract into machine-consumable structured clauses with
   clause numbers and page anchors; extracts amounts in both Chinese words and figures,
   keeps ambiguity unresolved, and never normalizes uncertain values.
-version: 1.0.2
+version: 1.0.3
 type: procedural
 risk_level: low
 status: enabled
@@ -34,7 +34,7 @@ requires:
     - UnderstandImage
 metadata:
   author: DesireCore
-  version: 1.0.2
+  version: 1.0.3
   updated_at: '2026-09-06'
   pipeline_stage: 3
   upstream: contract-intake
@@ -918,7 +918,7 @@ failure_marks:
 
 ## 抽取产物完整结构
 
-所有机器消费的 YAML 必须使用块式映射和块式序列；禁止非空 flow map `{...}` 与 flow sequence `[...]`。`reason_ref`、路径、ID、哈希及包含 YAML 特殊字符的标量必须引用。写入 `clauses.yaml` 后立即完整 `Read` 回读并用可用 YAML 解析能力检查根键、必需字段和缩进；解析失败返回 `REJECT-CLAUSES-YAML`，不得发送 handoff。
+所有机器消费的 YAML 必须使用块式映射和块式序列；禁止非空 flow map `{...}` 与 flow sequence `[...]`。本技能中的所有紧凑括号写法、字段签名和集合记法均为 schema 说明，绝不可复制到 `clauses.yaml`；每个机器消费示例必须展开为块式 YAML。`reason_ref`、路径、ID、哈希及包含 YAML 特殊字符的标量必须引用。写入 `clauses.yaml` 后立即完整 `Read` 回读并用可用 YAML 解析能力检查根键、必需字段和缩进；解析失败返回 `REJECT-CLAUSES-YAML`，不得发送 handoff。交接前用 `Grep` 扫描产物文本，命中非注释 `{...}` 或非空 `[...]` 即拒绝发送。
 
 顶层键 `clause_extraction`。各明细段的行结构见对应 E 小节，此处给骨架与治理段。
 
