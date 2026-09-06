@@ -12,7 +12,7 @@ description: >-
   Use when converting a gated contract into machine-consumable structured clauses with
   clause numbers and page anchors; extracts amounts in both Chinese words and figures,
   keeps ambiguity unresolved, and never normalizes uncertain values.
-version: 1.0.0
+version: 1.0.1
 type: procedural
 risk_level: low
 status: enabled
@@ -34,8 +34,8 @@ requires:
     - UnderstandImage
 metadata:
   author: DesireCore
-  version: 1.0.0
-  updated_at: '2026-08-31'
+  version: 1.0.1
+  updated_at: '2026-09-06'
   pipeline_stage: 3
   upstream: contract-intake
   downstream: [risk-scanner, jurisdiction-auditor]
@@ -59,6 +59,13 @@ metadata:
 4. **到时如实收口。** 在 8 分钟时检查剩余 E 步骤和落盘状态，在 10 分钟前必须写入当前事实。若无法完成，保留已写产物，把未完成字段记为 `blank`/`blocked` 并写入对应 `failure_marks`，不得伪造完整 37 条或发送“已完成”回执；交接只能在产物结构和失败标记可被下游消费时进行，否则停在当前环节并报告超时。
 
 这组约束只压缩读取、上下文和重复工作，不放宽 E1–E10、页码/行号证据、金额大写与小写双录、`pending` 原样透传、歧义保留或 handoff 完整性。
+
+### 首写硬闸（必须先做，优先级高于本技能其余说明）
+
+模型不得把“准备写入”当作已经落盘。完成启动凭证读取后，先用一次 `GenerateUUID` 建立 `extraction_id`；完成第一次合同或冻结部件 `Read` 后，**下一次工具调用必须是 `Write`**：
+在 `workspace` 下建立本案唯一的绝对 `artifact_path`，先写入可读的 E1 身份/版本骨架（未确定字段使用 `blank`，不得等待完整分析）。除这一次 `GenerateUUID` 外，首次 `Write` 前禁止 `Grep`、`MathCalc`、第二次全文 `Read` 或长篇推理；不确定时先落盘再增量更新。
+
+之后每个 E 组最多允许一次局部读取和一次 `Write` 更新；任何新发现都写入既有产物，不得另起草稿。若距离启动已超过 8 分钟或模型无法在下一步完成当前 E 组，立即 `Write` 当前事实和 `failure_marks`（可为 `blank`/`blocked`），再停止本轮；不得继续扫描或重复规划。10 分钟后不得发起新的分析工具调用。
 
 ## 启动前置条件（不满足则拒绝启动）
 
@@ -141,12 +148,12 @@ metadata:
 ## E1 上游核验与对象绑定
 
 1. 读取 `handoff` 块，逐项核对「启动前置条件」与「交接契约消费规则」。
-2. 用 `Read` 读入 `receipt_path` 指向的回执，取 `frozen_baseline` 的完整值。
-3. 用 `Ls` 确认工作目录，用 `Read` 逐一读入 `frozen_baseline.page_range` 声明的全部部件。
+2. 立即用 `GenerateUUID` 生成 `extraction_id`，格式 `EXTRACT-<YYYYMMDD>-<uuid 前 8 位>`；这是首次 `Write` 前唯一允许的元数据工具调用。
+3. 用 `Read` 读入 `receipt_path` 指向的回执，取 `frozen_baseline` 的完整值。
+4. 用 `Ls` 确认工作目录，用 `Read` 逐一读入 `frozen_baseline.page_range` 声明的全部部件。
    **只读 `frozen_baseline` 列出的部件**——多读一个未冻结的文件，就是在处理另一个对象。
    `page_range` 是**按部件**给的（如 `{body: "1-7", "attachment:附件二": "1-2"}`），
    你的 `part` 标识必须与它逐字一致。
-4. 用 `GenerateUUID` 生成 `extraction_id`，格式 `EXTRACT-<YYYYMMDD>-<uuid 前 8 位>`。
 5. 登记版本信息：`parser_revision`（文档解析器版本）、`ontology_version`、`skill_version`，
    并把 `intake_id` / `receipt_path` 写进 `upstream` 段，保持链路可回放。
 6. 图片型页面用 `UnderstandImage` 读取，**结果一律 `certainty: uncertain` 起步**，
@@ -919,7 +926,7 @@ clause_extraction:
   extraction_id: EXTRACT-20260331-4b81ce07
   extracted_at: 2026-03-31T10:44:12+08:00
   executed_by: clause-extractor
-  skill: clause-extraction@1.0.0
+  skill: clause-extraction@1.0.1
   parser_revision: 0.8.4
   ontology_version: onto-v1
 
