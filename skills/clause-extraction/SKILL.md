@@ -46,7 +46,7 @@ metadata:
 
 ## 何时使用
 
-输入治理闸门给出 `pass` 或 `conditional` 之后、任何风险判断之前执行。它是固定工具链的
+输入治理闸门给出 `passed` 或 `conditional` 之后、任何风险判断之前执行。它是固定工具链的
 第 3 步「条款抽取」，产出是第 4–7 步（法域知识注入、风险判读、版本对比、报告输出）的共同输入。
 
 ## 启动前置条件（不满足则拒绝启动）
@@ -56,7 +56,7 @@ metadata:
 | 条件 | 不满足时 |
 |---|---|
 | 收到 `handoff` 块，且 `handoff.to == clause-extractor` | 拒绝启动，回报 `EXT-NO-HANDOFF`——不得凭原文直接开工 |
-| 上游回执 `verdict` ∈ {`pass`, `conditional`} | 拒绝启动（`EXT-UPSTREAM-REJECTED`）。`reject` 时闸门关上就是关上，不得以"先抽出来供参考"绕过 |
+| 上游回执 `verdict` ∈ {`passed`, `conditional`} | 拒绝启动（`EXT-UPSTREAM-REJECTED`）。`blocked` 时闸门关上就是关上，不得以"先抽出来供参考"绕过 |
 | `object` 齐全（`contract_object_id` + `object_title` + `submission_mode`） | 拒绝启动，回报 `EXT-OBJECT-INCOMPLETE` 并指明缺哪一项 |
 | `scope.frozen_baseline` 存在 | 拒绝启动（`EXT-BASELINE-ABSENT`） |
 | `receipt_path` 为可读的绝对路径 | 拒绝启动（`EXT-RECEIPT-UNREADABLE`） |
@@ -1097,7 +1097,7 @@ handoff:
 
 **启动与边界**
 
-- [ ] 上游 `handoff` 块存在，`verdict` ∈ {`pass`, `conditional`}，未在 `reject` 下启动
+- [ ] 上游 `handoff` 块存在，`verdict` ∈ {`passed`, `conditional`}，未在 `blocked` 下启动
 - [ ] `frozen_baseline` 原样携带，未改写、未重新校验、未推翻
 - [ ] 只读了 `frozen_baseline` 列出的部件，没有多读未冻结的文件
 - [ ] 全文没有出现风险等级、严重程度、标尺比对结论、修改建议
