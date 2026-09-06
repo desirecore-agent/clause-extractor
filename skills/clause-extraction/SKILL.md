@@ -12,7 +12,7 @@ description: >-
   Use when converting a gated contract into machine-consumable structured clauses with
   clause numbers and page anchors; extracts amounts in both Chinese words and figures,
   keeps ambiguity unresolved, and never normalizes uncertain values.
-version: 1.0.1
+version: 1.0.2
 type: procedural
 risk_level: low
 status: enabled
@@ -34,7 +34,7 @@ requires:
     - UnderstandImage
 metadata:
   author: DesireCore
-  version: 1.0.1
+  version: 1.0.2
   updated_at: '2026-09-06'
   pipeline_stage: 3
   upstream: contract-intake
@@ -918,6 +918,8 @@ failure_marks:
 
 ## 抽取产物完整结构
 
+所有机器消费的 YAML 必须使用块式映射和块式序列；禁止非空 flow map `{...}` 与 flow sequence `[...]`。`reason_ref`、路径、ID、哈希及包含 YAML 特殊字符的标量必须引用。写入 `clauses.yaml` 后立即完整 `Read` 回读并用可用 YAML 解析能力检查根键、必需字段和缩进；解析失败返回 `REJECT-CLAUSES-YAML`，不得发送 handoff。
+
 顶层键 `clause_extraction`。各明细段的行结构见对应 E 小节，此处给骨架与治理段。
 
 ```yaml
@@ -1069,10 +1071,19 @@ handoff:
       statement: 附件二由 SLA-v1.2 替换为 SLA-v2.0（文档编号 YCIT-DOC-SLA-v1.2 → YCIT-DOC-SLA-v2.0）；
         正文逐字相同（body_diff_count=0），**不得据此判定两版一致**
       required_downstream_action: 对附件二正文做实质条款对比，并给出风险变化方向（上升 / 下调 / 持平）
-      evidence: {part: body, page: 7, quote: "附件二 | 服务水平协议 | SLA-v2.0 | YCIT-DOC-SLA-v2.0"}
+      evidence:
+        part: body
+        page: 7
+        quote: "附件二 | 服务水平协议 | SLA-v2.0 | YCIT-DOC-SLA-v2.0"
       resolution_evidence:                # 我执行了范围内的部分，但条目仍保留透传
-        extracted_refs: [ATTREF-04, ATTREF-05, ATTREF-06]
-        affected_clauses: ["7.1", "7.2", "11.3"]
+        extracted_refs:
+          - ATTREF-04
+          - ATTREF-05
+          - ATTREF-06
+        affected_clauses:
+          - "7.1"
+          - "7.2"
+          - "11.3"
         note: 已抽全受影响条款与两版附件条款；风险变化方向未表态，仍待下游判定
     # ② 本 Agent 新增的待确认项，用 PEND-EXT-* 编号以示区分
     - id: PEND-EXT-01
@@ -1082,7 +1093,10 @@ handoff:
       statement: 第 3.2 款大写「壹佰贰拾万元整」与小写「¥1,280,000.00」为不同数值，差额 80,000
       required_downstream_action: 属蓝本第十二节「付款触发与回款」，须走 Human Gate 由授权人裁定；
         裁定前该金额不得用于任何计算或标尺比对
-      evidence: {part: body, page: 2, quote: "协议期内首年采购预算总额为人民币壹佰贰拾万元整（¥1,280,000.00）"}
+      evidence:
+        part: body
+        page: 2
+        quote: "协议期内首年采购预算总额为人民币壹佰贰拾万元整（¥1,280,000.00）"
 
   scope:                                  # 本次任务范围
     in_scope_completed:
