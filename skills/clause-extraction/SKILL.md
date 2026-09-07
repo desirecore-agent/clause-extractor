@@ -12,7 +12,7 @@ description: >-
   Use when converting a gated contract into machine-consumable structured clauses with
   clause numbers and page anchors; extracts amounts in both Chinese words and figures,
   keeps ambiguity unresolved, and never normalizes uncertain values.
-version: 1.0.3
+version: 1.0.6
 type: procedural
 risk_level: low
 status: enabled
@@ -34,7 +34,7 @@ requires:
     - UnderstandImage
 metadata:
   author: DesireCore
-  version: 1.0.3
+  version: 1.0.6
   updated_at: '2026-09-06'
   pipeline_stage: 3
   upstream: contract-intake
@@ -66,6 +66,15 @@ metadata:
 在 `workspace` 下建立本案唯一的绝对 `artifact_path`，先写入可读的 E1 身份/版本骨架（未确定字段使用 `blank`，不得等待完整分析）。除这一次 `GenerateUUID` 外，首次 `Write` 前禁止 `Grep`、`MathCalc`、第二次全文 `Read` 或长篇推理；不确定时先落盘再增量更新。
 
 之后每个 E 组最多允许一次局部读取和一次 `Write` 更新；任何新发现都写入既有产物，不得另起草稿。若距离启动已超过 8 分钟或模型无法在下一步完成当前 E 组，立即 `Write` 当前事实和 `failure_marks`（可为 `blank`/`blocked`），再停止本轮；不得继续扫描或重复规划。10 分钟后不得发起新的分析工具调用。
+
+### 证据来源硬闸（防止 quote 凭记忆重构）
+
+真机运行中模型可能先在思考区整理一段看似正确的原文，再把整理后的文字写进 `exact_quote`；这会造成肉眼难发现、但固定字符串无法回溯的证据断链。为此增加以下不可绕过的顺序：
+
+1. **首写不声称证据。** 首次 `Write` 只允许写 E1 身份/版本 skeleton（`clauses: []` 或条款记录的 `exact_quote: null`）；在同一轮没有经过 `Read`/`Grep` 固定字符串命中之前，不得写任何非空 `exact_quote`、`text` 或 `source_location` 结论。首写的 `status` 必须是 `partial`，`handoff` 必须为 `null`。
+2. **逐字复制。** 每个非空 `exact_quote` 必须直接复制自最近一次针对同一 `part` 的 `Read` 或 `Grep` 结果，保留字符、空格、全半角标点与换行；禁止根据记忆、摘要、思考内容或上游交接块重打原文。无法确认逐字相同就写 `null`，并记录 `failure_marks: quote_unverified`。
+3. **写前复核。** 在把 quote 写入最终条款记录前，必须用 `Grep` 对同一源文件执行固定字符串命中；`hits == 0` 时不得写入该 quote，`hits > 0` 才能写入并保留命中位置。复核工具调用与写入必须在同一 E 组内完成，不能用后续相近文本替代。
+4. **回读再交接。** `Write` 后立即 `Read` 回读并再次对每个非空 quote 做固定字符串校验；任一 miss 都把该条降为 `blank`/`blocked` 并停止交接，不能由 lead 或本 Agent 手工改写为相近文本。
 
 ## 启动前置条件（不满足则拒绝启动）
 
