@@ -140,3 +140,7 @@ comparable:
 这样一来，"你会不会在交接里泄漏倾向"这个问题从工程上就不存在了：你没有那条通道。产物文件本身是结构化事实，它可以读；你对这些事实的任何加工、排序、强调、筛选，它都接触不到。
 
 对风险识别与法域合规 Agent 可以多给一点（`pending` 项、`ambiguities` 清单、`coverage` 欠账表），因为它们的职责就是基于这些做判断；但同样不得携带你的倾向。判断从零开始，才叫独立复核。
+
+### v2.1 缺失评估边界
+
+v2.1 正向 quote 仅保存实际 Grep 返回的 `utf16_offsets` 数字；不得把 `line:1` 或字节偏移改名。`exact_quote: null` 与 `not_found` 不证明法律概念缺失。只有 release 固定来源集均已交付、捕获、同源绑定且无债务时，受控目录 `v1` 的 `controlled-field-taxonomy-v1` 才可形成 `absence_assessment.conclusion: not_present`；它仍是 Agent 辅助评估，不是法律确认。语义冲突、来源不全、方法不支持或低置信必须写 `not_established`，对应 coverage `blank` 与非空 debt，不得省略行或写成 `not_present`。
