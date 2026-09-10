@@ -45,7 +45,6 @@ function semanticHold(artifact) {
 }
 
 test('prepares v2.1 without routing or tool-authority expansion', () => {
-  assert.equal(agent.version, '1.0.9')
   assert.equal(agent.llm.routingMode, 'smart')
   assert.ok(agent.tool_permissions.denied.includes('Bash'))
   assert.ok(!agent.tool_permissions.allowed.includes('StructuredFileValidate'))
@@ -60,6 +59,7 @@ test('parses and validates the full v2.1 positive fixture with restricted Draft-
   assert.ok(count(schema) <= 1024)
   const validate = new Ajv({ strict: false }).compile(schema)
   const valid = parseYaml('valid-ready-v21.yaml')
+  assert.equal(valid.clause_extraction.skill, 'clause-extraction@1.0.9')
   assert.equal(validate(valid), true, JSON.stringify(validate.errors))
   assert.equal(semanticHold(valid), false)
 })

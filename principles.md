@@ -144,3 +144,13 @@ comparable:
 ### v2.1 缺失评估边界
 
 v2.1 正向 quote 仅保存实际 Grep 返回的 `utf16_offsets` 数字；不得把 `line:1` 或字节偏移改名。`exact_quote: null` 与 `not_found` 不证明法律概念缺失。只有 release 固定来源集均已交付、捕获、同源绑定且无债务时，受控目录 `v1` 的 `controlled-field-taxonomy-v1` 才可形成 `absence_assessment.conclusion: not_present`；它仍是 Agent 辅助评估，不是法律确认。语义冲突、来源不全、方法不支持或低置信必须写 `not_established`，对应 coverage `blank` 与非空 debt，不得省略行或写成 `not_present`。
+
+### v2.2 DOCX canonical-text boundary
+
+clause-extraction@1.0.10 may author the v2.2 sibling contract only when the reviewed generic canonical Read preparation is registered and granted. A DOCX part keeps its original frozen byte SHA-256 and size. Its source_representations[] declaration has exactly one entry for each delivered part and no entry for an undelivered part; an all-undelivered artifact uses [] and remains HOLD. It records the source name, the canonical_text derived SHA-256, the singleton utf16_code_unit codec, and the UTF-16 code-unit length. It is Agent data, not a capability, a filesystem reference, or proof of derivation.
+
+The opaque canonical Read reference is private to this Clause Agent's trusted agent/conversation/exact-optional-Work-Context binding. Do not write it into the artifact, a receipt, failure detail, a handoff, or a message to Lead. Do not give it to another Agent. Ordinary Read(file_path: *.docx) remains an invalid replacement for canonical Read preparation.
+
+For a DOCX part, page only with utf16_offset and utf16_limit. Require a strictly advancing returned slice end, continuous offsets, matching original SHA/size and derived provenance on every page, and no surrogate-pair split. Stop only at complete: true. On expiry, owner/context rejection, a missing reference, range/budget failure, or any changed original/derived tuple, do not fall back to path Read or stale slices. Reprepare and restart at offset zero; if the bounded run cannot do that, retain typed debt and keep the relevant records blank or blocked with no handoff.
+
+A future same-call Compose derived_source operand must independently bind the artifact declaration to worker-private provenance. Until that generic operand and the relevant release-owned rule/pin are actually registered, unavailable, denied, native-failed, or mismatched, final v2.2 admission is HOLD. A schema check, a model comparison, or the declaration itself cannot prove DOCX provenance or authorize Lead/O3.

@@ -1,0 +1,122 @@
+# Canonical v2.1 authoring skeleton. It is YAML-parseable but intentionally partial.
+# It is not a v1a/v1b-valid final artifact and must never be handed off as passed.
+# v2.2 representation declaration: exactly one entry per delivered part and none per undelivered part. An all-undelivered artifact uses []. This is Agent data;
+# only a future same-call generic Compose derived-source operand can bind DOCX metadata.
+# source_representations:
+#   - part_id: body
+#     source_name: part_0
+#     source_sha256: <original-frozen-docx-sha256>
+#     source_size_bytes: <original-byte-count>
+#     format: docx
+#     representation: {kind: canonical_text, derived_text_sha256: <canonical-utf8-sha256>, text_offset_codec: utf16_code_unit, derived_text_utf16_code_units: <integer>}
+
+clause_extraction:
+  extraction_id: "EXTRACT-example"
+  extracted_at: "<ISO-8601>"
+  executed_by: "clause-extractor"
+  skill: "clause-extraction@1.0.10"
+  parser_revision: "<revision>"
+  ontology_version: "<ontology-version>"
+  contract_schema:
+    name: "clause-extraction-artifact"
+    version: 22
+    sha256: "<release-pinned-schema-sha256>"
+  lifecycle:
+    state: partial
+    repair_attempt: 0
+    handoff: null
+    started_at: "<ISO-8601>"
+    deadline_at: "<ISO-8601>"
+  upstream:
+    from: contract-intake
+    intake_id: "<INTAKE-id>"
+    receipt_path: "<absolute-receipt-path>"
+    verdict: passed
+    frozen_baseline:
+      master_version: "<upstream-master-version>"
+      attachment_manifest_digest: "<upstream-digest-or-null>"
+      page_range:
+        body: "<page-range>"
+      execution_status: "<upstream-declared-status-or-null>"
+    consistency_conclusion_allowed: false
+  object:
+    contract_object_id: "<object-id>"
+    version_label: "<version>"
+    content_digest: "<source-content-digest-or-unknown>"
+  frozen_baseline:
+    baseline_version: 1
+    part_limit: 64
+    parts:
+      - id: "body"
+        source: "<absolute-frozen-source-path>"
+        pages: "<page-range>"
+        delivered: true
+        size_bytes: 0
+        sha256: "<64-hex-sha256>"
+        part_not_delivered: null
+        source_name: "part_0"
+        format: "docx"
+  parts:
+    - id: "body"
+      source: "<absolute-frozen-source-path>"
+      pages: "<page-range>"
+      delivered: true
+      size_bytes: 0
+      sha256: "<64-hex-sha256>"
+      part_not_delivered: null
+      source_name: "part_0"
+      format: "docx"
+  part_count: 1
+
+
+
+
+
+
+
+  dispute_resolution: null
+  governing_law: null
+  liability: null
+
+
+
+
+  payloads:
+    # One block entry for each named E2-E10 group; no unknown group names.
+    - group: parties
+      records:
+        - id: "party-1"
+          status: blank
+          value: null
+          evidence: []
+          debt_codes:
+            - "EXT-PENDING"
+  coverage: []
+
+  failure_marks: []
+  stats:
+  handoff: null
+
+# A false-delivery member remains in both maps; it is never deleted or made not_present.
+#   delivered: false
+#   size_bytes: null
+#   sha256: null
+#   part_not_delivered: "EXT-PART-NOT-DELIVERED: <reason>"
+# Free text is exactly one scalar; never concatenate prose after a quoted scalar.
+#   statement: |-
+#     Complete unresolved text goes here.
+
+# v2.1 absence assessment is allowed only on coverage rows. release-owned Compose, not this Agent declaration, verifies source capture and exactly-once identity. A not_present row requires
+# a release-fixed captured source declaration; semantic uncertainty is blank with debt.
+# absence_assessment:
+#   conclusion: not_established
+#   semantic_method: {catalog_version: v1, catalog_sha256: <catalog.sha256>, id: controlled-field-taxonomy-v1}
+#   claimed_searched_sources: [{part_id: body, source_name: part_0, sha256: <captured-sha>}]
+#   coverage_scope: partial
+#   confidence: low
+#   human_confirmation_required: false
+#   debt_codes: [EXT-SEMANTIC-METHOD-UNSUPPORTED]
+
+# Positive evidence: exact_quote is a non-empty Grep result with utf16_offsets: [0] or more offsets.
+# Null evidence: exact_quote: null with grep_state: not_found|unavailable and utf16_offsets: [].
+# Candidate ambiguity evidence is positive only: grep_state: matched and non-empty utf16_offsets.

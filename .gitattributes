@@ -1,2 +1,3 @@
 resources/absence-method-catalog/catalog.json -text
 schemas/clause-extraction-artifact-v21.schema.json -text
+schemas/clause-extraction-artifact-v22.schema.json -text

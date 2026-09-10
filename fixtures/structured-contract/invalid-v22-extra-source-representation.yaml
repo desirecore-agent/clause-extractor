@@ -1,0 +1,578 @@
+clause_extraction:
+  extraction_id: EXTRACT-fixture
+  extracted_at: 2026-09-11T00:00:00Z
+  executed_by: clause-extractor
+  skill: clause-extraction@1.0.10
+  parser_revision: v2
+  ontology_version: onto-v1
+  contract_schema:
+    name: clause-extraction-artifact
+    version: 22
+    sha256: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  lifecycle:
+    state: ready_for_handoff
+    started_at: 2026-09-11T00:00:00Z
+    deadline_at: 2026-09-11T01:00:00Z
+    repair_attempt: 0
+    handoff:
+      artifact_path: /workspace/EXTRACT-fixture.extraction.yaml
+      to: contract-review-lead
+  upstream:
+    from: contract-intake
+    intake_id: INTAKE-fixture
+    receipt_path: /workspace/intake.yaml
+    verdict: passed
+    frozen_baseline:
+      master_version: v1
+      attachment_manifest_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      page_range:
+        body: 1-1
+    consistency_conclusion_allowed: false
+  object:
+    contract_object_id: doc-main
+    object_title: Fixture contract
+    version_label: v1
+    submission_mode: single
+    content_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  frozen_baseline:
+    baseline_version: 1
+    part_limit: 64
+    parts:
+      - id: body
+        source: /workspace/C13-extraction-coverage.docx
+        pages: 1-1
+        delivered: true
+        size_bytes: 100
+        sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        part_not_delivered: null
+        source_name: part_0
+        format: docx
+  parts:
+    - id: body
+      source: /workspace/C13-extraction-coverage.docx
+      pages: 1-1
+      delivered: true
+      size_bytes: 100
+      sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      part_not_delivered: null
+      source_name: part_0
+      format: docx
+  part_count: 1
+  payloads:
+    - group: parties
+      records:
+        - id: parties-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: definitions
+      records:
+        - id: definitions-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: clauses
+      records:
+        - id: clauses-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: monetary_terms
+      records:
+        - id: monetary_terms-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: payment_terms
+      records:
+        - id: payment_terms-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: temporal_terms
+      records:
+        - id: temporal_terms-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: termination_grounds
+      records:
+        - id: termination_grounds-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: attachment_manifest
+      records:
+        - id: attachment_manifest-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: attachment_references
+      records:
+        - id: attachment_references-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: attachment_reconciliation
+      records:
+        - id: attachment_reconciliation-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: attachment_cross_version
+      records:
+        - id: attachment_cross_version-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: dispute_resolution
+      records:
+        - id: dispute-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: governing_law
+      records:
+        - id: law-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+    - group: liability
+      records:
+        - id: liability-1
+          status: covered
+          value: Example clause text.
+          evidence:
+            - part: body
+              page: "1"
+              source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+              exact_quote: Example clause text.
+              grep_state: matched
+              exhaustive: false
+              utf16_offsets:
+                - 0
+          debt_codes: []
+  coverage:
+    - field_group: parties
+      slug: parties
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: definitions
+      slug: definitions
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: clauses
+      slug: clauses
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: monetary
+      slug: monetary
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: payment
+      slug: payment
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: temporal
+      slug: temporal
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: termination
+      slug: termination
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: dispute
+      slug: dispute
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: governing
+      slug: governing
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: liability
+      slug: liability
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: attachment-manifest
+      slug: attachment-manifest
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: attachment-references
+      slug: attachment-references
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: attachment-reconciliation
+      slug: attachment-reconciliation
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: attachment-cross-version
+      slug: attachment-cross-version
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: execution
+      slug: execution
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: version
+      slug: version
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: identity
+      slug: identity
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: scope
+      slug: scope
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+    - field_group: ambiguities
+      slug: ambiguities
+      status: covered
+      evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          grep_state: matched
+          exhaustive: false
+          utf16_offsets:
+            - 0
+      debt_codes: []
+      exhaustive: false
+  failure_marks: []
+  stats:
+    clauses_extracted: 1
+    coverage_covered: 19
+    coverage_not_present: 0
+    coverage_blank: 0
+    coverage_blocked: 0
+  ambiguities:
+    - id: ambiguity-1
+      statement: Unresolved fixture ambiguity.
+      candidate_evidence:
+        - part: body
+          page: "1"
+          source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          exact_quote: Example clause text.
+          utf16_offsets:
+            - 0
+          grep_state: matched
+      adjudicated: false
+  source_representations:
+    - part_id: body
+      source_name: part_0
+      source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      source_size_bytes: 100
+      format: docx
+      representation:
+        kind: canonical_text
+        derived_text_sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        text_offset_codec: utf16_code_unit
+        derived_text_utf16_code_units: 42
+    - part_id: extra
+      source_name: part_1
+      source_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      source_size_bytes: 100
+      format: docx
+      representation:
+        kind: canonical_text
+        derived_text_sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        text_offset_codec: utf16_code_unit
+        derived_text_utf16_code_units: 42
