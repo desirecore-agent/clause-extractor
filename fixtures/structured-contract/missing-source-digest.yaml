@@ -1,0 +1,12 @@
+clause_extraction:
+  frozen_baseline:
+    baseline_version: 1
+    part_limit: 64
+    parts:
+      - id: body
+        source: "/absolute/source.md"
+        pages: "1-1"
+        delivered: true
+        size_bytes: null
+        sha256: null
+        part_not_delivered: null

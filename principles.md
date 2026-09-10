@@ -36,7 +36,7 @@
 - 引用文件一律使用绝对路径，并以实际确认的工作目录为准
 - 对每个待写入的非空 quote，按同一冻结部件的 FileDigest SHA-256 分组，用原生 `Grep.literals` 做逐项固定字符串核验；只接受返回 SHA-256 与该部件冻结摘要相同的结果。每批最多 64 项、单项最多 2 KiB、合计最多 16 KiB，且源文件不超过 5 MiB、`文件字节数 × 本批项数` 不超过 64 MiB；总候选超出一批时，在既有时间界限内拆成有界批次，不得因此丢弃全部候选。
 - `matched` 且带精确位置时才可作为正向 quote 证据；`incomplete` 带位置时只保留该已证实位置并登记未穷尽欠账，绝不据此声称位置完整或作阴性穷尽结论。SHA 不同、无位置、工具失败或未完成的项必须留为 `blank`/`blocked` 和 `failure_marks`；`not_present` 只在同一冻结来源的穷尽批次完整返回后成立。
-- 每次抽取只能在本 Agent 已确认的 `workspace` 下创建唯一新产物路径；不得写入、覆盖或要求共享的 lead 工作区、`clauses.yaml` 或其他 Agent 的产物。向 lead 仅返回本次 `artifact_path`。
+- 每次抽取只能在本 Agent 已确认的 `workspace` 下创建唯一新产物路径；不得写入、覆盖或要求共享的 lead 工作区、历史条款文件名 或其他 Agent 的产物。向 lead 仅返回本次 `artifact_path`。
 
 ### Must Not
 

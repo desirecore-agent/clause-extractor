@@ -1,0 +1,93 @@
+# Canonical v2 authoring skeleton. It is YAML-parseable but intentionally partial.
+# It is not a v1a/v1b-valid final artifact and must never be handed off as passed.
+clause_extraction:
+  extraction_id: "EXTRACT-example"
+  extracted_at: "<ISO-8601>"
+  executed_by: "clause-extractor"
+  skill: "clause-extraction@1.0.8"
+  parser_revision: "<revision>"
+  ontology_version: "<ontology-version>"
+  contract_schema:
+    name: "clause-extraction-artifact"
+    version: 2
+    sha256: "<release-pinned-schema-sha256>"
+  lifecycle:
+    state: partial
+    repair_attempt: 0
+    handoff: null
+    started_at: "<ISO-8601>"
+    deadline_at: "<ISO-8601>"
+  upstream:
+    from: contract-intake
+    intake_id: "<INTAKE-id>"
+    receipt_path: "<absolute-receipt-path>"
+    verdict: passed
+    frozen_baseline:
+      master_version: "<upstream-master-version>"
+      attachment_manifest_digest: "<upstream-digest-or-null>"
+      page_range:
+        body: "<page-range>"
+      execution_status: "<upstream-declared-status-or-null>"
+    consistency_conclusion_allowed: false
+  object:
+    contract_object_id: "<object-id>"
+    version_label: "<version>"
+    content_digest: "<source-content-digest-or-unknown>"
+  frozen_baseline:
+    baseline_version: 1
+    part_limit: 64
+    parts:
+      - id: "body"
+        source: "<absolute-frozen-source-path>"
+        pages: "<page-range>"
+        delivered: true
+        size_bytes: 0
+        sha256: "<64-hex-sha256>"
+        part_not_delivered: null
+  parts:
+    - id: "body"
+      source: "<absolute-frozen-source-path>"
+      pages: "<page-range>"
+      delivered: true
+      size_bytes: 0
+      sha256: "<64-hex-sha256>"
+      part_not_delivered: null
+  part_count: 1
+
+
+
+
+
+
+
+  dispute_resolution: null
+  governing_law: null
+  liability: null
+
+
+
+
+  payloads:
+    # One block entry for each named E2-E10 group; no unknown group names.
+    - group: parties
+      records:
+        - id: "party-1"
+          status: blank
+          value: null
+          evidence: []
+          debt_codes:
+            - "EXT-PENDING"
+  coverage: []
+
+  failure_marks: []
+  stats:
+  handoff: null
+
+# A false-delivery member remains in both maps; it is never deleted or made not_present.
+#   delivered: false
+#   size_bytes: null
+#   sha256: null
+#   part_not_delivered: "EXT-PART-NOT-DELIVERED: <reason>"
+# Free text is exactly one scalar; never concatenate prose after a quoted scalar.
+#   statement: |-
+#     Complete unresolved text goes here.

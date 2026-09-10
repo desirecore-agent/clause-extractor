@@ -12,7 +12,7 @@ description: >-
   Use when converting a gated contract into machine-consumable structured clauses with
   clause numbers and page anchors; extracts amounts in both Chinese words and figures,
   keeps ambiguity unresolved, and never normalizes uncertain values.
-version: 1.0.7
+version: 1.0.8
 type: procedural
 risk_level: low
 status: enabled
@@ -34,7 +34,7 @@ requires:
     - UnderstandImage
 metadata:
   author: DesireCore
-  version: 1.0.7
+  version: 1.0.8
   updated_at: '2026-09-11'
   pipeline_stage: 3
   upstream: contract-intake
@@ -53,7 +53,7 @@ metadata:
 
 单个 O2 抽取目标是在 **10 分钟内**完成可交接产物。这个时限约束执行方式如下，不能靠延长推理或等待模型自行收敛来规避：
 
-1. **先写盘，后交接。** E1 完成并确认绝对工作目录后，立即建立本次 extraction 的绝对产物路径；每完成一组 E 步骤就用 `Write` 原子更新同一个新产物文件。至少按 E1、E2–E5、E6–E9、E10 四个检查点落盘。只有最终文件写成功、可读回并包含完整 E1–E10 结构后，才发送 `handoff` 或 `SendMessage`；交接块只引用 `artifact_path`，不携带整份条款正文。
+1. **先写盘，后交接。** E1 完成并确认绝对工作目录后，立即建立本次 extraction 的绝对产物路径；每完成一组 E 步骤就用 `Write` 原子更新同一个新产物文件。至少按 E1、E2–E5、E6–E9、E10 四个检查点落盘。只有最终文件写成功、可读回并包含完整 E1–E10 结构，且已获得并成功执行被显式授权的 v1a/v1b 校验后，才可发送 `handoff` 或 `SendMessage`；未注册、拒绝或失败时必须 HOLD，`handoff: null`；交接块只引用 `artifact_path`，不携带整份条款正文。
 2. **分块读取与精简正文。** 按 `frozen_baseline.page_range` 的部件和页段分块读取；每块只保留当前 E 步骤需要的短原文片段、稳定 ID 和 `{part, page, quote}` 证据。不要在上下文或交接块重复整份 3 页/多附件正文；条款全文留在落盘产物，交接只传统计、缺口和下游所需事实。
 3. **一次有界推理。** 依次完成 E1→E10，使用已经确认的 `confirmed[]`，不得重新跑输入治理或全文反复重读。每个 E 组只做一次抽取和一次针对硬字段的局部核对；禁止无界思考、循环改写同一 YAML、重复生成同一条款或为了“再确认一次”重新扫描全文。
 4. **到时如实收口。** 在 8 分钟时检查剩余 E 步骤和落盘状态，在 10 分钟前必须写入当前事实。若无法完成，保留已写产物，把未完成字段记为 `blank`/`blocked` 并写入对应 `failure_marks`，不得伪造完整 37 条或发送“已完成”回执；交接只能在产物结构和失败标记可被下游消费时进行，否则停在当前环节并报告超时。
@@ -86,7 +86,7 @@ metadata:
 4. **`incomplete` 不是阴性。** 某项 `incomplete` 但已返回精确 locations 时，可以保留该条**已经命中的**逐字 quote 和实际位置；同时在对应 `failure_marks` 写明 `EXT-QUOTE-VERIFY-INCOMPLETE`、源 SHA-256、该位置及“位置枚举未完成”。不得说它已列尽全部位置，不得据它填 `not_found`、`not_present` 或任何穷尽性措辞。`incomplete` 没有可用位置、SHA-256 不同、预检失败或工具失败时，该项留为 `blank`/`blocked` 并登记同类欠账。
 5. **阴性结论要完整同源证据。** 只有同一冻结来源的相关 literals 都在完整返回中得到 `not_found`，并且已覆盖该字段组所需的全部冻结部件，才可把穷尽检索写入 `search_performed` 并考虑 `not_present`。只要任一项或任一部件为 `incomplete`、未核验、SHA 不同、超过 5 MiB 或未交付，就保留 `blank`/`blocked`，不缩小合同范围来换取阴性结论。
 6. **时间到即保留已证实事实。** 到 8 分钟时不再发起下一批或新的 Grep；先 `Write` 已 `matched` 的证据、已有 `incomplete` 的实际位置和全部未证实欠账，再按既有规则收口。超过 5 MiB 的源文件是工具能力限制，不是范围缩减理由：记录限制和待补证项，不谎称已完成该部件的检索。
-7. **产物归属不能共享。** 每轮只在本 Agent 已用 `Ls` 确认的 `workspace` 下创建唯一的 `<extraction_id>.extraction.yaml`。不得写入、覆盖或要求 lead workspace、共享 `clauses.yaml` 或其他 Agent 的路径；lead 只能消费最终交接返回的 `artifact_path`。
+7. **产物归属不能共享。** 每轮只在本 Agent 已用 `Ls` 确认的 `workspace` 下创建唯一的 `<extraction_id>.extraction.yaml`。不得写入、覆盖或要求 lead workspace、共享 `<extraction_id>.extraction.yaml` 或其他 Agent 的路径；lead 只能消费最终交接返回的 `artifact_path`。
 
 ## 启动前置条件（不满足则拒绝启动）
 
@@ -935,8 +935,8 @@ failure_marks:
 <有效工作目录>/contract-review/<contract_object_id>/extraction/<extraction_id>.extraction.yaml
 ```
 
-`<有效工作目录>` 用 `Ls` 实际确认后使用绝对路径，**不要在提示词或产物里写死任何用户主目录字面量**。该路径必须是本 Agent 的确认 workspace；不得改写或复用 lead workspace、共享 `clauses.yaml` 或任何其他 Agent 产物。
-先创建新的绝对路径并写入最小身份/版本骨架，再按 E1、E2–E5、E6–E9、E10 检查点原子更新；写入失败必须停止，不得只在上下文中保留结果。最终 `Read` 回读成功、结构完整且 `failure_marks`/`coverage` 已落盘后，才允许发送 `handoff`。交接块只传 `artifact_path`、统计和待确认项，不复制整份条款正文。
+`<有效工作目录>` 用 `Ls` 实际确认后使用绝对路径，**不要在提示词或产物里写死任何用户主目录字面量**。该路径必须是本 Agent 的确认 workspace；不得改写或复用 lead workspace、共享 `<extraction_id>.extraction.yaml` 或任何其他 Agent 产物。
+先创建新的绝对路径并写入最小身份/版本骨架，再按 E1、E2–E5、E6–E9、E10 检查点原子更新；写入失败必须停止，不得只在上下文中保留结果。最终 `Read` 回读成功、结构完整且 `failure_marks`/`coverage` 已落盘后仍必须先完成已授权的 v1a/v1b；目前该能力未注册，故必须保持 HOLD 与 `handoff: null`。交接块只传 `artifact_path`、统计和待确认项，不复制整份条款正文。
 旧产物**保留不覆盖**——规则或解析器更新后要靠它们做历史回放与差异对比。
 `parser_revision` 变化后旧产物一律作废重抽，不做增量修补。
 
@@ -944,80 +944,9 @@ failure_marks:
 
 ## 抽取产物完整结构
 
-所有机器消费的 YAML 必须使用块式映射和块式序列；禁止非空 flow map `{...}` 与 flow sequence `[...]`。本技能中的所有紧凑括号写法、字段签名和集合记法均为 schema 说明，绝不可复制到 `clauses.yaml`；每个机器消费示例必须展开为块式 YAML。`reason_ref`、路径、ID、哈希及包含 YAML 特殊字符的标量必须引用。写入 `clauses.yaml` 后立即完整 `Read` 回读并用可用 YAML 解析能力检查根键、必需字段和缩进；解析失败返回 `REJECT-CLAUSES-YAML`，不得发送 handoff。交接前用 `Grep` 扫描产物文本，命中非注释 `{...}` 或非空 `[...]` 即拒绝发送。
+所有机器消费的 YAML 必须使用块式映射和块式序列；禁止非空 flow map 与 flow sequence。唯一可复制的 v2 顶层 authoring skeleton 是 `templates/clause-extraction-artifact.yaml`，最终产物为 `<extraction_id>.extraction.yaml`，不再使用历史 `clauses.yaml` 或 1.0.1 shape。
 
-顶层键 `clause_extraction`。各明细段的行结构见对应 E 小节，此处给骨架与治理段。
-
-```yaml
-clause_extraction:
-  # ── 身份与版本 ──
-  extraction_id: EXTRACT-20260331-4b81ce07
-  extracted_at: 2026-03-31T10:44:12+08:00
-  executed_by: clause-extractor
-  skill: clause-extraction@1.0.1
-  parser_revision: 0.8.4
-  ontology_version: onto-v1
-
-  # ── 上游绑定（原样携带，不改写）──
-  upstream:
-    from: contract-intake
-    intake_id: INTAKE-20260331-7f3a2c9b
-    receipt_path: /abs/path/.../INTAKE-20260331-7f3a2c9b.receipt.yaml
-    verdict: conditional
-    frozen_baseline:                      # 逐字复制，不重新校验
-      master_version: YCIT-SAAS-2025-0206
-      attachment_manifest_digest: <上游给的摘要>
-      page_range: {body: "1-7", "attachment:附件二": "1-2"}
-      execution_status: executed@2025-11-03
-    consistency_conclusion_allowed: false # 原样透传，不得置 true
-
-  # ── 交接对象编号（三元组）──
-  object:
-    contract_object_id: YCIT-SAAS-2025-0206
-    object_title: 软件即服务（SaaS）订阅服务协议
-    version_label: C06b-saas-v2
-    content_digest: 9f2c41ab7d3e0655
-    submission_mode: version_comparison
-
-  parts:
-    - {id: body, source: /abs/path/C06b-saas-v2.md, pages: "1-7", delivered: true}
-    - {id: "attachment:附件二", source: /abs/path/SLA-v2.0.md, pages: "1-2", delivered: true}
-
-  # ── 抽取产物 ──
-  parties:            [...]   # E4
-  definitions:        [...]   # E3
-  clauses:            [...]   # E2（条款树主体）
-  monetary_terms:     [...]   # E5（大写小写双录）
-  payment_terms:      [...]   # E6
-  installment_percentage_sum: 100
-  temporal_terms:     [...]   # E7
-  termination_grounds:[...]   # E8.1
-  dispute_resolution: {...}   # E8.2（独立对象）
-  governing_law:      {...}   # E8.2（与上者分开判断存在性）
-  liability:          {...}   # E8.3（含 comparable 可比较结构）
-  attachment_manifest:   [...]  # E9 表一
-  attachment_references: [...]  # E9 表二（逐次不去重）
-  attachment_reconciliation: [...]  # E9 对账陈述（不裁决）
-  attachment_cross_version:  [...]  # E9 仅版本对比模式
-
-  # ── 治理段 ──
-  coverage:      [...]   # E10 欠账表，必查字段组一个不落
-  ambiguities:   [...]   # E10 全部 adjudicated: false
-  failure_marks: [...]   # E10
-
-  # ── 统计（客观计数，不含判断）──
-  stats:
-    clauses_extracted: 47
-    clauses_with_page: 47
-    coverage_covered: 14
-    coverage_not_present: 3
-    coverage_blank: 2
-    coverage_blocked: 0
-    ambiguities_open: 2
-    normalization_blocked: 5
-
-  handoff: {...}         # 见下节
-```
+v2 的 E2–E10 明细在 `payloads` 下以字段组名键入；每个字段组都必须存在且是严格 evidence-carrying records。不可把未交付部件删除、把 quote 失败改成阴性结论，或把任何 local YAML/JSON/Ajv 检查当作运行时工具事实。当前 `StructuredFileValidate` 不可用时，最终状态只能 `blocked` 或 `partial` 且 `lifecycle.handoff: null`。
 
 ### 每条产物记录的强制字段（缺任一该条不合格）
 
@@ -1030,7 +959,7 @@ clause_extraction:
     quote: "<逐字原文，可 grep 到>"
   certainty: certain         # certain | uncertain | unknown
   # 非 certain 时必须有：
-  # readings: [...] 或 unknown_reason: "..."
+  # readings: use one block sequence; unknown_reason: "..."
   # 且所有 normalized_* 必须为 null + normalization_blocked_reason
 ```
 
@@ -1131,7 +1060,8 @@ handoff:
       - 风险打分与市场标尺比对（属 risk-scanner）
       - 法域规则匹配与冲突判定（属 jurisdiction-auditor）
       - 最终评分、动作建议与 Human Gate 判定（属 review-reporter）
-    frozen_baseline: {...}                # 原样承自上游，未改写
+    frozen_baseline:
+      # use the v2 block mapping from the canonical template; do not inline flow YAML
     consistency_conclusion_allowed: false # 原样透传
     coverage_summary:
       covered: 14
@@ -1167,7 +1097,7 @@ handoff:
 - [ ] E1–E10 全部执行，无跳步
 - [ ] O2 在 8 分钟检查剩余工作和落盘状态，并在 10 分钟内完成或如实写入 `blank`/`blocked` 与 `failure_marks`
 - [ ] 已按 E1、E2–E5、E6–E9、E10 检查点先写入绝对产物，再发送任何交接
-- [ ] 本次产物是确认 workspace 下唯一的新 extraction 文件，未写入或覆盖 lead/shared 路径、`clauses.yaml` 或其他 Agent 产物
+- [ ] 本次产物是确认 workspace 下唯一的新 extraction 文件，未写入或覆盖 lead/shared 路径、`<extraction_id>.extraction.yaml` 或其他 Agent 产物
 - [ ] 交接前已 `Read` 回读最终产物；交接块只引用 `artifact_path`，没有复制整份条款正文
 - [ ] 没有无界推理、循环重写同一 YAML、重复生成条款或全文反复扫描
 - [ ] `coverage` 里必查字段组**一个不落**，每行都有状态
@@ -1231,3 +1161,15 @@ handoff:
 - [ ] 所有文件引用都是绝对路径
 - [ ] 产物落盘路径是实际确认过的工作目录，没有写死任何用户主目录字面量
 - [ ] 旧产物未被覆盖
+
+## v2 structured artifact contract and validation hold
+
+`clause-extraction@1.0.8` introduces a breaking machine-consumed artifact contract. Its authoritative self-described restricted Draft-07 text is `schemas/clause-extraction-artifact.schema.json`; author from `templates/clause-extraction-artifact.yaml`, whose free-text values use one block scalar or one complete quoted scalar. Never concatenate a quoted scalar with prose. The old 1.0.7 artifact shape is not valid input for this contract; Lead must negotiate/consume this version explicitly and never mix both versions in one O2 acceptance.
+
+`frozen_baseline.baseline_version` is `1`; its bounded logical part map is represented as `parts[]`, keyed by stable `id`, max 64 entries. Each delivered member is at most 5 MiB for Grep and records its own FileDigest SHA-256/size; aggregate hashes never replace member hashes. `delivered: false` retains the part with `sha256: null` and `size_bytes: null`, plus `part_not_delivered`; related coverage is `blank` or `blocked`, never `not_present`. Artifact bytes must remain within proposed v1a 1 MiB/20,000 nodes; schema text within proposed v1b 32 KiB/1,024 schema nodes; existing Grep 64/2KiB/16KiB/5MiB/64MiB limits still apply.
+
+`StructuredFileValidate` is not currently registered or allow-listed for this Agent. Do not claim YAML parse or schema success today. Once the reviewed generic v1a/v1b capability is actually available and explicitly granted, validate the exact final artifact first with v1a and then v1b using the exact release-pinned schema text. Any unavailable/denied/failed/over-budget result is `blocked` with `EXT-STRUCTURED-VALIDATION-UNAVAILABLE` or its returned code, `handoff: null`, and no passed claim.
+
+A receiving Lead must independently validate exact artifact bytes, FileDigest every delivered frozen member, and native `Grep.literals` every non-empty quote before RC/O3. It must re-evaluate every `not_present` from complete same-source `not_found` results. The required 19 coverage field groups occur exactly once in the pre-generated catalog; schema structure alone cannot prove this cross-record invariant. It must also compare `frozen_baseline.parts`, `parts`, and `part_count` as one bounded map: every stable `id` occurs once in each map, has identical source/page/delivery values, and a false-delivery member keeps its typed debt. `coverage`/`failure_marks` carry the semantic association between that debt and `blank`/`blocked`. Unreadable artifact/source or failed validation is HOLD, never summary acceptance. Rework follows existing O2 policy unchanged: terminal nonconformance only, same trusted binding and `contextMode: continue`, at most two reworks; active/unknown waits and missing/mismatched binding is H.
+
+The Draft-07 document deliberately validates only bounded syntax and field shape. It cannot establish source provenance, SHA equality with live FileDigest output, native-Grep locations, quote byte equality, map equality, or exactly-once coverage; those are mandatory Agent/Lead checks above. Do not label an artifact `ready_for_handoff` merely because a future v1b schema check passes. The fixture corpus under `fixtures/structured-contract/expectations.json` distinguishes syntax/schema rejection from these semantic HOLD cases.

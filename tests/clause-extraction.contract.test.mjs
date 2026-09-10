@@ -1,62 +1,105 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import test from 'node:test'
 
 const root = new URL('..', import.meta.url)
+const platformRequire = createRequire(new URL('../../package.json', root))
+const YAML = platformRequire('yaml')
+const Ajv = platformRequire('ajv')
 const agent = JSON.parse(readFileSync(new URL('agent.json', root), 'utf8'))
-const principles = readFileSync(new URL('principles.md', root), 'utf8')
 const skill = readFileSync(new URL('skills/clause-extraction/SKILL.md', root), 'utf8')
-const batchStart = skill.indexOf('### 原生 `Grep.literals` 批量核验')
-const batchEnd = skill.indexOf('\n## 启动前置条件', batchStart)
-assert.ok(batchStart >= 0 && batchEnd > batchStart, 'batch verification section must be delimited')
-const batch = skill.slice(batchStart, batchEnd)
-
-test('releases the bounded-literal rule as 1.0.7 without changing routing or tool authority', () => {
-  assert.equal(agent.version, '1.0.7')
-  assert.equal(agent.llm.routingMode, 'smart')
-  assert.equal(agent.llm.smart.profile.reasoning, 'high')
-  assert.deepEqual(agent.tool_permissions.allowed, [
-    'Read', 'Ls', 'Glob', 'Grep', 'Write', 'Edit', 'Skill', 'MathCalc',
-    'GenerateUUID', 'UnderstandImage', 'AskUserQuestion', 'Delegate',
-    'SendMessage', 'FileDigest',
-  ])
-  assert.ok(agent.tool_permissions.denied.includes('Bash'))
-  assert.match(skill, /^version: 1\.0\.7$/m)
-})
-
-test('requires native literals and every documented Grep batch budget', () => {
-  for (const requirement of ['1–64', '2 KiB', '16 KiB', '5 MiB', '64 MiB']) {
-    assert.match(batch, new RegExp(requirement.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+const schemaText = readFileSync(new URL('schemas/clause-extraction-artifact.schema.json', root), 'utf8')
+const schema = JSON.parse(schemaText)
+const fixture = name => readFileSync(new URL(`fixtures/structured-contract/${name}`, root), 'utf8')
+const expectations = JSON.parse(readFileSync(new URL('fixtures/structured-contract/expectations.json', root), 'utf8'))
+for (const { file } of expectations.fixtures) assert.ok(fixture(file).length > 0, `missing fixture: ${file}`)
+const parseYaml = name => {
+  const raw = fixture(name)
+  assert.doesNotMatch(raw, /(^|\s)([&*!]|<<:)/m, `${name} must not use YAML anchors, aliases, tags, or merges`)
+  const doc = YAML.parseDocument(raw, { uniqueKeys: true, merge: false })
+  assert.equal(doc.errors.length, 0, `${name}: ${doc.errors.map(error => error.message).join('; ')}`)
+  return doc.toJS()
+}
+const allowed = new Set(['$schema', 'title', 'description', 'type', 'const', 'enum', 'properties', 'required', 'additionalProperties', 'items', 'minItems', 'maxItems', 'minLength', 'maxLength', 'minimum', 'maximum', 'allOf', 'anyOf', 'oneOf', 'not'])
+function assertRestricted(value, propertyNames = false) {
+  if (Array.isArray(value)) return value.forEach(item => assertRestricted(item, false))
+  if (!value || typeof value !== 'object') return
+  for (const [key, child] of Object.entries(value)) {
+    if (!propertyNames) assert.ok(allowed.has(key), `forbidden v1b schema keyword: ${key}`)
+    assertRestricted(child, key === 'properties')
   }
-  assert.match(batch, /原生 `literals` 数组/)
-  assert.match(batch, /不得传 JSON-array 字符串/)
-  assert.match(batch, /继续拆成下一有界批/)
-  assert.match(batch, /不得因总量过大就把全部 quote 清空/)
+}
+function semanticHold(artifact) {
+  const x = artifact.clause_extraction
+  if (x.lifecycle.state !== 'ready_for_handoff' && x.lifecycle.handoff !== null) return true
+  if (x.lifecycle.state === 'ready_for_handoff' && x.lifecycle.handoff === null) return true
+  if (x.part_count !== x.parts.length || JSON.stringify(x.parts) !== JSON.stringify(x.frozen_baseline.parts)) return true
+  if (Date.parse(x.lifecycle.deadline_at) <= Date.parse('2026-09-11T00:30:00Z') && x.lifecycle.state === 'ready_for_handoff') return true
+  const groups = x.payloads.map(entry => entry.group)
+  if (new Set(groups).size !== 14) return true
+  const slugs = x.coverage.map(row => row.slug)
+  if (new Set(slugs).size !== 19) return true
+  return x.parts.some(part => !part.delivered && x.coverage.some(row => row.status === 'not_present'))
+}
+
+test('releases v2 without routing or tool-authority expansion', () => {
+  assert.equal(agent.version, '1.0.8')
+  assert.equal(agent.llm.routingMode, 'smart')
+  assert.ok(agent.tool_permissions.denied.includes('Bash'))
+  assert.ok(!agent.tool_permissions.allowed.includes('StructuredFileValidate'))
+  assert.match(skill, /StructuredFileValidate.*not currently registered/)
 })
 
-test('binds each positive quote to the frozen source SHA and preserves incomplete positive evidence only', () => {
-  assert.match(batch, /返回 SHA-256 与 `frozen_sha256` 相同/)
-  assert.match(batch, /只有 `matched` 且有返回的精确位置，才能写入该 quote/)
-  assert.match(batch, /`incomplete` 但已返回精确 locations 时，可以保留该条/)
-  assert.match(batch, /不得说它已列尽全部位置/)
-  assert.match(batch, /不得据它填 `not_found`、`not_present`/)
-  assert.match(batch, /同一冻结来源的相关 literals 都在完整返回中得到 `not_found`/)
-  assert.match(skill, /quote_verification_incomplete/)
-  assert.match(skill, /quote_verification_failed/)
-  assert.match(principles, /SHA-256 与该部件冻结摘要相同/)
+test('parses and validates the full v2 positive fixture with restricted Draft-07', () => {
+  assert.equal(schema.$schema, 'http://json-schema.org/draft-07/schema#')
+  assert.ok(Buffer.byteLength(schemaText) <= 32 * 1024)
+  assertRestricted(schema)
+  const count = value => value && typeof value === 'object' ? 1 + Object.values(value).reduce((sum, child) => sum + count(child), 0) : 1
+  assert.ok(count(schema) <= 1024)
+  const validate = new Ajv({ strict: false }).compile(schema)
+  const valid = parseYaml('valid-ready.yaml')
+  assert.equal(validate(valid), true, JSON.stringify(validate.errors))
+  assert.equal(semanticHold(valid), false)
 })
 
-test('records unsupported or unfinished source work as debt without narrowing scope', () => {
-  assert.match(batch, /超过 5 MiB 的源文件是工具能力限制，不是范围缩减理由/)
-  assert.match(batch, /不缩小合同范围来换取阴性结论/)
-  assert.match(batch, /到 8 分钟时不再发起下一批或新的 Grep/)
-  assert.match(skill, /10 分钟后不得发起新的分析工具调用/)
-  assert.match(principles, /`blank`\/`blocked` 和 `failure_marks`/)
+test('rejects malformed YAML and invalid structural lifecycle fixtures', () => {
+  const malformed = YAML.parseDocument(fixture('invalid-quoted-suffix.yaml'), { uniqueKeys: true, merge: false })
+  assert.ok(malformed.errors.length > 0)
+  const duplicate = YAML.parseDocument(fixture('invalid-duplicate-key.yaml'), { uniqueKeys: true, merge: false })
+  assert.ok(duplicate.errors.length > 0)
+  const validate = new Ajv({ strict: false }).compile(schema)
+  assert.equal(validate(parseYaml('invalid-ready-null-handoff.yaml')), false)
 })
 
-test('keeps extraction artifacts unique to the clause workspace', () => {
-  assert.match(batch, /本 Agent 已用 `Ls` 确认的 `workspace` 下创建唯一的 `<extraction_id>\.extraction\.yaml`/)
-  assert.match(batch, /不得写入、覆盖或要求 lead workspace、共享 `clauses\.yaml` 或其他 Agent 的路径/)
-  assert.match(batch, /lead 只能消费最终交接返回的 `artifact_path`/)
-  assert.match(principles, /不得写入、覆盖或要求共享的 lead 工作区、`clauses\.yaml` 或其他 Agent 的产物/)
+test('rejects central v2 structural constraints under Ajv', () => {
+  const validate = new Ajv({ strict: false }).compile(schema)
+  const valid = parseYaml('valid-ready.yaml')
+  const unknownGroup = structuredClone(valid)
+  unknownGroup.clause_extraction.payloads[0].group = 'forged_group'
+  assert.equal(validate(unknownGroup), false)
+  const incompleteNegative = structuredClone(valid)
+  incompleteNegative.clause_extraction.coverage[0].status = 'not_present'
+  incompleteNegative.clause_extraction.coverage[0].exhaustive = false
+  assert.equal(validate(incompleteNegative), false)
+  for (const mutate of [
+    evidence => { evidence.exact_quote = null },
+    evidence => { evidence.positions = [] },
+  ]) {
+    const badPositive = structuredClone(valid)
+    mutate(badPositive.clause_extraction.payloads[0].records[0].evidence[0])
+    assert.equal(validate(badPositive), false)
+  }
+})
+
+test('holds semantic map/count, duplicate coverage, debt, and deadline cases without calling them schema success', () => {
+  const valid = parseYaml('valid-ready.yaml')
+  const countMismatch = structuredClone(valid); countMismatch.clause_extraction.part_count = 2
+  assert.equal(semanticHold(countMismatch), true)
+  const duplicateCoverage = structuredClone(valid); duplicateCoverage.clause_extraction.coverage[18].slug = duplicateCoverage.clause_extraction.coverage[0].slug
+  assert.equal(semanticHold(duplicateCoverage), true)
+  const blocked = structuredClone(valid); blocked.clause_extraction.lifecycle = { ...blocked.clause_extraction.lifecycle, state: 'blocked', handoff: null, repair_attempt: 2 }
+  assert.equal(semanticHold(blocked), false)
+  const timeout = structuredClone(valid); timeout.clause_extraction.lifecycle.deadline_at = '2026-09-11T00:01:00Z'
+  assert.equal(semanticHold(timeout), true)
 })
