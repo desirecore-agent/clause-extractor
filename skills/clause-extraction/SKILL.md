@@ -12,7 +12,7 @@ description: >-
   Use when converting a gated contract into machine-consumable structured clauses with
   clause numbers and page anchors; extracts amounts in both Chinese words and figures,
   keeps ambiguity unresolved, and never normalizes uncertain values.
-version: 1.0.6
+version: 1.0.7
 type: procedural
 risk_level: low
 status: enabled
@@ -34,8 +34,8 @@ requires:
     - UnderstandImage
 metadata:
   author: DesireCore
-  version: 1.0.6
-  updated_at: '2026-09-06'
+  version: 1.0.7
+  updated_at: '2026-09-11'
   pipeline_stage: 3
   upstream: contract-intake
   downstream: [risk-scanner, jurisdiction-auditor]
@@ -65,7 +65,7 @@ metadata:
 模型不得把“准备写入”当作已经落盘。完成启动凭证读取后，先用一次 `GenerateUUID` 建立 `extraction_id`；完成第一次合同或冻结部件 `Read` 后，**下一次工具调用必须是 `Write`**：
 在 `workspace` 下建立本案唯一的绝对 `artifact_path`，先写入可读的 E1 身份/版本骨架（未确定字段使用 `blank`，不得等待完整分析）。除这一次 `GenerateUUID` 外，首次 `Write` 前禁止 `Grep`、`MathCalc`、第二次全文 `Read` 或长篇推理；不确定时先落盘再增量更新。
 
-之后每个 E 组最多允许一次局部读取和一次 `Write` 更新；任何新发现都写入既有产物，不得另起草稿。若距离启动已超过 8 分钟或模型无法在下一步完成当前 E 组，立即 `Write` 当前事实和 `failure_marks`（可为 `blank`/`blocked`），再停止本轮；不得继续扫描或重复规划。10 分钟后不得发起新的分析工具调用。
+之后每个 E 组最多允许一次局部读取和一次 `Write` 更新；同组的 `Grep.literals` 逐批固定字符串核验属于这一次局部核验，必须受其预算约束。任何新发现都写入既有产物，不得另起草稿。若距离启动已超过 8 分钟或模型无法在下一步完成当前 E 组，立即 `Write` 当前事实和 `failure_marks`（可为 `blank`/`blocked`），再停止本轮；不得继续扫描或重复规划。10 分钟后不得发起新的分析工具调用。
 
 ### 证据来源硬闸（防止 quote 凭记忆重构）
 
@@ -75,6 +75,18 @@ metadata:
 2. **逐字复制。** 每个非空 `exact_quote` 必须直接复制自最近一次针对同一 `part` 的 `Read` 或 `Grep` 结果，保留字符、空格、全半角标点与换行；禁止根据记忆、摘要、思考内容或上游交接块重打原文。无法确认逐字相同就写 `null`，并记录 `failure_marks: quote_unverified`。
 3. **写前复核。** 在把 quote 写入最终条款记录前，必须用 `Grep` 对同一源文件执行固定字符串命中；`hits == 0` 时不得写入该 quote，`hits > 0` 才能写入并保留命中位置。复核工具调用与写入必须在同一 E 组内完成，不能用后续相近文本替代。
 4. **回读再交接。** `Write` 后立即 `Read` 回读并再次对每个非空 quote 做固定字符串校验；任一 miss 都把该条降为 `blank`/`blocked` 并停止交接，不能由 lead 或本 Agent 手工改写为相近文本。
+
+### 原生 `Grep.literals` 批量核验（冻结来源、逐项结果）
+
+固定字符串复核必须使用 `Grep` 的原生 `literals` 数组；它是同一 E 组的一次局部核验，可把多个候选拆为有限批次，**不**改变 E1–E10 覆盖范围、上游冻结范围或既有 8/10 分钟收口规则。首次 skeleton `Write` 之后，按以下顺序执行：
+
+1. **逐部件建候选，不混源。** 对每个候选 quote 记录 `{part, source_abs_path, frozen_sha256, quote, 关联条款行}`。`part` 必须是 `frozen_baseline.page_range` 的键，`frozen_sha256` 必须来自该**同一源文件版本**已取得的 FileDigest SHA-256；没有该摘要或摘要为 `unknown` 时，不得把任何 Grep 结果绑定到该冻结对象。
+2. **先预检再拆批。** 仅对同一绝对源路径、同一 `part`、同一冻结 SHA-256 的候选分组。每一批同时满足：1–64 个 literals；每项 UTF-8 不超过 2 KiB；本批 UTF-8 总和不超过 16 KiB；源文件不超过 5 MiB；`源文件字节数 × 本批 literal 数` 不超过 64 MiB。总量超过一批时，按这些预算继续拆成下一有界批；不得因总量过大就把全部 quote 清空。工具参数传原生数组，例如 `literals:` 下逐项列出字符串；不得传 JSON-array 字符串、正则 `pattern` 或把数组序列化后交给工具。
+3. **逐项消费，而非按批猜测。** 每次返回都核对实际源文件、返回 SHA-256 与 `frozen_sha256` 相同，再分别读取每个 literal 的 `matched` / `not_found` / `incomplete` 与位置。只有 `matched` 且有返回的精确位置，才能写入该 quote 和该位置。某一批的其他项失败，不会抹掉本批已经 `matched` 的正向证据。
+4. **`incomplete` 不是阴性。** 某项 `incomplete` 但已返回精确 locations 时，可以保留该条**已经命中的**逐字 quote 和实际位置；同时在对应 `failure_marks` 写明 `EXT-QUOTE-VERIFY-INCOMPLETE`、源 SHA-256、该位置及“位置枚举未完成”。不得说它已列尽全部位置，不得据它填 `not_found`、`not_present` 或任何穷尽性措辞。`incomplete` 没有可用位置、SHA-256 不同、预检失败或工具失败时，该项留为 `blank`/`blocked` 并登记同类欠账。
+5. **阴性结论要完整同源证据。** 只有同一冻结来源的相关 literals 都在完整返回中得到 `not_found`，并且已覆盖该字段组所需的全部冻结部件，才可把穷尽检索写入 `search_performed` 并考虑 `not_present`。只要任一项或任一部件为 `incomplete`、未核验、SHA 不同、超过 5 MiB 或未交付，就保留 `blank`/`blocked`，不缩小合同范围来换取阴性结论。
+6. **时间到即保留已证实事实。** 到 8 分钟时不再发起下一批或新的 Grep；先 `Write` 已 `matched` 的证据、已有 `incomplete` 的实际位置和全部未证实欠账，再按既有规则收口。超过 5 MiB 的源文件是工具能力限制，不是范围缩减理由：记录限制和待补证项，不谎称已完成该部件的检索。
+7. **产物归属不能共享。** 每轮只在本 Agent 已用 `Ls` 确认的 `workspace` 下创建唯一的 `<extraction_id>.extraction.yaml`。不得写入、覆盖或要求 lead workspace、共享 `clauses.yaml` 或其他 Agent 的路径；lead 只能消费最终交接返回的 `artifact_path`。
 
 ## 启动前置条件（不满足则拒绝启动）
 
@@ -897,7 +909,12 @@ ambiguities:
 
 `clause_hit_without_page` / `duplicate_clause_no` / `low_ocr_confidence` /
 `attachment_version_uncovered` / `reference_target_missing` / `clause_no_gap` /
-`part_not_delivered`
+`part_not_delivered` / `quote_verification_incomplete` / `quote_verification_failed`
+
+批量固定字符串核验未完整返回时，使用 `quote_verification_incomplete`（代码
+`EXT-QUOTE-VERIFY-INCOMPLETE`）记录已核验的源 SHA-256、实际位置和未穷尽原因；SHA
+不匹配、无位置或工具失败时使用 `quote_verification_failed`，对应覆盖项必须是
+`blank` 或 `blocked`，不得把失败伪装成阴性结论。
 
 ```yaml
 failure_marks:
@@ -918,7 +935,7 @@ failure_marks:
 <有效工作目录>/contract-review/<contract_object_id>/extraction/<extraction_id>.extraction.yaml
 ```
 
-`<有效工作目录>` 用 `Ls` 实际确认后使用绝对路径，**不要在提示词或产物里写死任何用户主目录字面量**。
+`<有效工作目录>` 用 `Ls` 实际确认后使用绝对路径，**不要在提示词或产物里写死任何用户主目录字面量**。该路径必须是本 Agent 的确认 workspace；不得改写或复用 lead workspace、共享 `clauses.yaml` 或任何其他 Agent 产物。
 先创建新的绝对路径并写入最小身份/版本骨架，再按 E1、E2–E5、E6–E9、E10 检查点原子更新；写入失败必须停止，不得只在上下文中保留结果。最终 `Read` 回读成功、结构完整且 `failure_marks`/`coverage` 已落盘后，才允许发送 `handoff`。交接块只传 `artifact_path`、统计和待确认项，不复制整份条款正文。
 旧产物**保留不覆盖**——规则或解析器更新后要靠它们做历史回放与差异对比。
 `parser_revision` 变化后旧产物一律作废重抽，不做增量修补。
@@ -1150,11 +1167,14 @@ handoff:
 - [ ] E1–E10 全部执行，无跳步
 - [ ] O2 在 8 分钟检查剩余工作和落盘状态，并在 10 分钟内完成或如实写入 `blank`/`blocked` 与 `failure_marks`
 - [ ] 已按 E1、E2–E5、E6–E9、E10 检查点先写入绝对产物，再发送任何交接
+- [ ] 本次产物是确认 workspace 下唯一的新 extraction 文件，未写入或覆盖 lead/shared 路径、`clauses.yaml` 或其他 Agent 产物
 - [ ] 交接前已 `Read` 回读最终产物；交接块只引用 `artifact_path`，没有复制整份条款正文
 - [ ] 没有无界推理、循环重写同一 YAML、重复生成条款或全文反复扫描
 - [ ] `coverage` 里必查字段组**一个不落**，每行都有状态
 - [ ] 每个 `not_present` 都附了 `search_performed`（`patterns` + `scope`）
 - [ ] 检索不充分的写了 `blank`，没有充数为 `not_present`
+- [ ] 每批 `Grep.literals` 都符合 64 项 / 单项 2 KiB / 合计 16 KiB / 源文件 5 MiB / 文件字节数乘项数 64 MiB 的预算，并传入原生数组
+- [ ] 每个 quote 的返回 SHA-256 与同一冻结部件的 FileDigest SHA-256 相同；`incomplete` 只保留实际命中位置并留有欠账，未被写成阴性或穷尽结论
 - [ ] `blocks_conclusion: true` 的失败标记，对应 `coverage` 行状态是 `blocked` 而非 `covered`
 
 **锚点（结论四元组的前两项）**
