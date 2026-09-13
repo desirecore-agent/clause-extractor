@@ -44,7 +44,7 @@ function semanticHold(artifact) {
 }
 
 test('uses the bounded structural validator without outbound scheduling authority', () => {
-assert.equal(agent.version, '1.0.11', 'v2.2 fixture and release schema require the current exact Agent version')
+assert.equal(agent.version, '1.0.12', 'v2.2 fixture and release schema require the current exact Agent version')
   assert.equal(agent.llm.routingMode, 'smart')
   assert.ok(agent.tool_permissions.denied.includes('Bash'))
   assert.ok(agent.tool_permissions.allowed.includes('StructuredFileValidate'))

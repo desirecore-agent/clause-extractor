@@ -1,7 +1,7 @@
 clause_extraction:
   case_id: "<inbound-handoff-case-id>"
   extraction_id: "<actual-generated-extraction-id>"
-  skill: "clause-extraction@1.0.11"
+  skill: "clause-extraction@1.0.12"
   lifecycle:
     state: partial
     handoff: null
@@ -24,9 +24,9 @@ clause_extraction:
         format: text
   checkpoint:
     artifact_path: "<this-absolute-member-owned-artifact-path>"
-    completed_groups:
-      - E1
+    completed_groups: []
     remaining_groups:
+      - E1
       - E2-E5
       - E6-E9
       - E10

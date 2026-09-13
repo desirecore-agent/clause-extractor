@@ -4,7 +4,7 @@ clause_extraction:
   extraction_id: EXTRACT-fixture
   extracted_at: 2026-09-11T00:00:00Z
   executed_by: clause-extractor
-  skill: clause-extraction@1.0.11
+  skill: clause-extraction@1.0.12
   parser_revision: v2
   ontology_version: onto-v1
   contract_schema:

@@ -98,7 +98,7 @@ test('v2.2 keeps bounded Draft-07 syntax while declaring a DOCX canonical repres
   }
 })
 test('uses the byte-pinned enabled-Skill schema and returns only to the synchronous Lead caller', () => {
-  assert.equal(createHash('sha256').update(bytes).digest('hex'), 'eefb5fdd4e38e0aafb5527b69fbfa203d76a37b6caadf8831fa7408f9768a439')
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), '46a2b4a99fc6dcf659117f4d33b7556c07a59b3628388b2272c58cd5fbc25dfb')
   assert.deepEqual(skillSchemaBytes, bytes)
   assert.ok(agent.tool_permissions.allowed.includes('StructuredFileValidate'))
   assert.ok(!agent.tool_permissions.allowed.includes('StructuredFileValidateCompose'))

@@ -14,7 +14,7 @@ clause_extraction:
   extraction_id: "EXTRACT-example"
   extracted_at: "<ISO-8601>"
   executed_by: "clause-extractor"
-  skill: "clause-extraction@1.0.11"
+  skill: "clause-extraction@1.0.12"
   parser_revision: "<revision>"
   ontology_version: "<ontology-version>"
   contract_schema:
