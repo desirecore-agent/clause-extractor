@@ -68,7 +68,7 @@ E2–E9 只在完成相应 coarse group 后更新同一 typed partial checkpoint
 
 单个 O2 目标是 10 分钟内完成可交接产物，不得靠延长推理或等待模型自行收敛规避。首次 `Write` 前不得把“准备写入”当作已经落盘：它必须只含已验证的身份、完整 frozen baseline、四组进度与 failure marks，且不得声称 E1 已完成、写非空 quote/text/source_location、方向性结论或 ready handoff。按 frozen baseline 的部件和页段分块读取，每块只保留当前 E 步骤所需的短原文片段、稳定 ID 和 `{part, page, quote}` 证据；不得在上下文或交接块重复整份正文或附件。
 
-按 E1→E10 使用已确认的 `confirmed[]`，不得重新运行输入治理或反复全文读取。每个 E 组最多一次局部读取和一次 `Write` 更新；同组的 `Grep.literals` 批量固定字符串核验属于这一次局部核验并受既有预算约束。任何新发现必须更新同一 artifact，不得另起草稿、循环改写、重复生成同一条款或为“再确认一次”重扫全文。
+按 E1→E10 使用已确认的 `confirmed[]`，不得重新运行输入治理或反复全文读取。每个 E 组最多一次局部读取和一次 `Write` 更新；同组的 `Grep.literals` 批量固定字符串核验属于这一次局部核验并受既有预算约束。原生 batch 的最小调用形状只能是 `Grep({path: <同一候选已确认的 source_abs_path 原样值>, literals: [<逐项固定字符串>]})`：不得同时传 `pattern`，也不得传 `output_mode`、`glob`、`type`、`head_limit`、`offset`、`context_lines`、任一 context/`-A`/`-B`/`-C`/`-n`/`-i` 标量。该形状故意省略可选 flags；平台只允许 `is_regex`、`ignore_case`、`multiline` 缺省或显式 `false`，任何一个为 `true` 都不能用于 literals。参数形态错误时，至多一次以同一已确认 source、同一 literals 原生 batch 更正；不得降级成逐条 `pattern` 调用来替代需要逐项结果和 SHA 的批量证据。任何其他失败仍按本组既有 `blank`/`blocked` 规则收口。任何新发现必须更新同一 artifact，不得另起草稿、循环改写、重复生成同一条款或为“再确认一次”重扫全文。
 
 既有 E1–E10、页码/行号证据、金额大写与小写双录、`pending` 原样透传、歧义保留、coverage、failure marks、Human Gate 与 v2.2 ready 约束仍全部适用。只有完整 final artifact 已按 v2.2 schema 回读验证成功、具确定绝对 handoff path 且 `to: contract-review-lead` 时，才可同步 return；不得自行 `Delegate` 或 `SendMessage`，partial 或失败均 HOLD。距启动 8 分钟仍未完成当前 E 组或不能在下一步完成时，立即 `Write` 当前已证实事实及 `blank`/`blocked` failure marks 并停止本轮；不得继续扫描或重复规划。10 分钟前必须写入当前事实。无法完成时不得伪造完整 37 条或发送“已完成”回执；只有产物结构与失败标记可被下游消费时才可交接，否则 HOLD 并报告超时。8 分钟后不得发起新的 `Grep` batch，10 分钟后不得发起新的实质分析。
 
@@ -86,7 +86,16 @@ E2–E9 只在完成相应 coarse group 后更新同一 typed partial checkpoint
 固定字符串复核必须使用 `Grep` 的原生 `literals` 数组；它是同一 E 组的一次局部核验，可把多个候选拆为有限批次，**不**改变 E1–E10 覆盖范围、上游冻结范围或既有 8/10 分钟收口规则。首次 skeleton `Write` 之后，按以下顺序执行：
 
 1. **逐部件建候选，不混源。** 对每个候选 quote 记录 `{part, source_abs_path, frozen_sha256, quote, 关联条款行}`。`part` 必须是 `frozen_baseline.page_range` 的键，`frozen_sha256` 必须来自该**同一源文件版本**已取得的 FileDigest SHA-256；没有该摘要或摘要为 `unknown` 时，不得把任何 Grep 结果绑定到该冻结对象。
-2. **先预检再拆批。** 仅对同一绝对源路径、同一 `part`、同一冻结 SHA-256 的候选分组。每一批同时满足：1–64 个 literals；每项 UTF-8 不超过 2 KiB；本批 UTF-8 总和不超过 16 KiB；源文件不超过 5 MiB；`源文件字节数 × 本批 literal 数` 不超过 64 MiB。总量超过一批时，按这些预算继续拆成下一有界批；不得因总量过大就把全部 quote 清空。工具参数传原生数组，例如 `literals:` 下逐项列出字符串；不得传 JSON-array 字符串、正则 `pattern` 或把数组序列化后交给工具。
+2. **先预检再拆批。** 仅对同一绝对源路径、同一 `part`、同一冻结 SHA-256 的候选分组。每一批同时满足：1–64 个 literals；每项 UTF-8 不超过 2 KiB；本批 UTF-8 总和不超过 16 KiB；源文件不超过 5 MiB；`源文件字节数 × 本批 literal 数` 不超过 64 MiB。总量超过一批时，按这些预算继续拆成下一有界批；不得因总量过大就把全部 quote 清空。每批只按以下最小原生形状调用，`path` 必须原样复用该组已确认的 `source_abs_path`：
+
+```text
+Grep({
+  path: <同一候选已确认的 source_abs_path 原样值>,
+  literals: [<逐项固定字符串>],
+})
+```
+
+不得传 JSON-array 字符串、正则 `pattern`、`output_mode`、`glob`、`type`、`head_limit`、`offset`、`context_lines`、`context`、`-A`、`-B`、`-C`、`-n` 或 `-i`。缺省 flags 即可；若显式传 `is_regex`、`ignore_case` 或 `multiline`，只能是 `false`，绝不得为 `true`。一次 malformed-arguments 返回仅可用同一 source 与同一 native literals batch 按本最小形状更正一次；不得转成 many-pattern 或单条 pattern 调用，也不得把拒绝的 source path 换成猜测路径。
 3. **逐项消费，而非按批猜测。** 每次返回都核对实际源文件、返回 SHA-256 与 `frozen_sha256` 相同，再分别读取每个 literal 的 `matched` / `not_found` / `incomplete` 与位置。只有 `matched` 且有返回的精确位置，才能写入该 quote 和该位置。某一批的其他项失败，不会抹掉本批已经 `matched` 的正向证据。
 4. **`incomplete` 不是阴性。** 某项 `incomplete` 但已返回精确 locations 时，可以保留该条**已经命中的**逐字 quote 和实际位置；同时在对应 `failure_marks` 写明 `EXT-QUOTE-VERIFY-INCOMPLETE`、源 SHA-256、该位置及“位置枚举未完成”。不得说它已列尽全部位置，不得据它填 `not_found`、`not_present` 或任何穷尽性措辞。`incomplete` 没有可用位置、SHA-256 不同、预检失败或工具失败时，该项留为 `blank`/`blocked` 并登记同类欠账。
 5. **阴性结论要完整同源证据。** 只有同一冻结来源的相关 literals 都在完整返回中得到 `not_found`，并且已覆盖该字段组所需的全部冻结部件，才可把穷尽检索写入 `search_performed` 并考虑 `not_present`。只要任一项或任一部件为 `incomplete`、未核验、SHA 不同、超过 5 MiB 或未交付，就保留 `blank`/`blocked`，不缩小合同范围来换取阴性结论。

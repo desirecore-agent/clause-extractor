@@ -112,3 +112,17 @@ test('startup procedure validates the typed partial checkpoint before any E1 sou
     assert.ok(skill.includes(preservedConstraint), `Skill must retain ${preservedConstraint}`)
   }
 })
+
+test('native literal batches use the verified source path and no scalar search mode', () => {
+  const start = skill.indexOf('### 原生 `Grep.literals` 批量核验（冻结来源、逐项结果）')
+  const end = skill.indexOf('## 启动前置条件', start)
+  assert.ok(start >= 0 && end > start)
+  const batch = skill.slice(start, end)
+  assert.match(batch, /Grep\(\{\s*path: <同一候选已确认的 source_abs_path 原样值>,\s*literals: \[<逐项固定字符串>\],\s*\}\)/s)
+  for (const prohibited of ['`pattern`', '`output_mode`', '`glob`', '`type`', '`head_limit`', '`offset`', '`context_lines`', '`context`', '`-A`', '`-B`', '`-C`', '`-n`', '`-i`']) {
+    assert.ok(batch.includes(prohibited), `batch instructions must reject ${prohibited}`)
+  }
+  assert.match(batch, /只能是 `false`，绝不得为 `true`/)
+  assert.match(batch, /同一 source 与同一 native literals batch.*更正一次/s)
+  assert.match(batch, /不得转成 many-pattern 或单条 pattern 调用/)
+})
