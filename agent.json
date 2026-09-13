@@ -82,12 +82,8 @@
   "accepts_messages": true,
   "max_concurrent_sessions": 2,
   "command_authority": {
-    "enabled": true,
-    "allowed_targets": [
-      "contract-review-lead",
-      "risk-scanner",
-      "jurisdiction-auditor"
-    ]
+    "enabled": false,
+    "allowed_targets": []
   },
   "default_enabled": {
     "skills": [
@@ -103,13 +99,12 @@
       "Grep",
       "Write",
       "Edit",
+      "StructuredFileValidate",
       "Skill",
       "MathCalc",
       "GenerateUUID",
       "UnderstandImage",
       "AskUserQuestion",
-      "Delegate",
-      "SendMessage",
       "FileDigest"
     ],
     "denied": [

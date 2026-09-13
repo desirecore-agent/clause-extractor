@@ -8,6 +8,8 @@ const root = new URL('..', import.meta.url)
 const platformRequire = createRequire(new URL('../../package.json', root))
 const YAML = platformRequire('yaml')
 const Ajv = platformRequire('ajv')
+const agent = JSON.parse(readFileSync(new URL('agent.json', root), 'utf8'))
+const skill = readFileSync(new URL('skills/clause-extraction/SKILL.md', root), 'utf8')
 const read = name => readFileSync(new URL('fixtures/structured-contract/' + name, root), 'utf8')
 const parse = name => {
   const doc = YAML.parseDocument(read(name), { uniqueKeys: true, merge: false })
@@ -15,6 +17,7 @@ const parse = name => {
   return doc.toJS()
 }
 const bytes = readFileSync(new URL('schemas/clause-extraction-artifact-v22.schema.json', root))
+const skillSchemaBytes = readFileSync(new URL('skills/clause-extraction/references/clause-extraction-artifact-v22.schema.json', root))
 const schema = JSON.parse(bytes)
 const allowed = new Set(['$schema', 'title', 'description', 'type', 'const', 'enum', 'properties', 'required', 'additionalProperties', 'items', 'minItems', 'maxItems', 'minLength', 'maxLength', 'minimum', 'maximum', 'allOf', 'anyOf', 'oneOf', 'not'])
 function checkSchemaShape(value, propertyNames = false) {
@@ -84,6 +87,22 @@ test('v2.2 keeps bounded Draft-07 syntax while declaring a DOCX canonical repres
     assert.equal(evidence.exact_quote, 'Example clause text.')
     assert.deepEqual(evidence.utf16_offsets, [0])
   }
+})
+test('uses the byte-pinned enabled-Skill schema and returns only to the synchronous Lead caller', () => {
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), '0349796015a208240887dc772795edde76c42552fbf61fc788769d07fad5c24f')
+  assert.deepEqual(skillSchemaBytes, bytes)
+  assert.ok(agent.tool_permissions.allowed.includes('StructuredFileValidate'))
+  assert.ok(!agent.tool_permissions.allowed.includes('StructuredFileValidateCompose'))
+  assert.ok(!agent.tool_permissions.allowed.includes('Delegate'))
+  assert.ok(!agent.tool_permissions.allowed.includes('SendMessage'))
+  assert.equal(agent.command_authority.enabled, false)
+  assert.match(skill, /\$\{SKILL_DIR\}\/references\/clause-extraction-artifact-v22\.schema\.json/)
+  assert.match(skill, /512 KiB, 8,000 nodes and depth 64/)
+  assert.match(skill, /不得把返回 hash、模型自述或 `valid` 字段写进业务产物/)
+  assert.match(skill, /Lead 必须仍按 O2 同调用 Compose 和既有 RC\/HG 验收/)
+  assert.match(skill, /members\/clause-extractor\/<case_id>\/<extraction_id>\/artifact\/<extraction_id>\.extraction\.yaml/)
+  assert.match(skill, /不得猜测 member binding、从 task\/文件名推断 case、写入 Lead 的 `contract-review\/\*\*`/)
+  assert.match(skill, /独立非 Team 运行保持自己的已确认 `workspace` 路径/)
 })
 test('v2.2 rejects null positive evidence and makes declaration tuple failures unavailable for admission', () => {
   const validate = new Ajv({ strict: false }).compile(schema)

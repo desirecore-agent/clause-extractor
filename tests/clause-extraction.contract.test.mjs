@@ -43,12 +43,17 @@ function semanticHold(artifact) {
   return x.parts.some(part => !part.delivered && x.coverage.some(row => row.status === 'not_present'))
 }
 
-test('releases v2 without routing or tool-authority expansion', () => {
-  assert.ok(agent.version >= '1.0.8', 'agent candidate must retain v2 schema/fixture compatibility')
+test('uses the bounded structural validator without outbound scheduling authority', () => {
+  assert.equal(agent.version, '1.0.10', 'v2.2 fixture and release schema require the current exact Agent version')
   assert.equal(agent.llm.routingMode, 'smart')
   assert.ok(agent.tool_permissions.denied.includes('Bash'))
-  assert.ok(!agent.tool_permissions.allowed.includes('StructuredFileValidate'))
-  assert.match(skill, /StructuredFileValidate.*not currently registered/)
+  assert.ok(agent.tool_permissions.allowed.includes('StructuredFileValidate'))
+  assert.ok(!agent.tool_permissions.allowed.includes('Delegate'))
+  assert.ok(!agent.tool_permissions.allowed.includes('SendMessage'))
+  assert.equal(agent.command_authority.enabled, false)
+  assert.match(skill, /success:true.*valid:true/)
+  assert.match(skill, /第二次不匹配.*handoff: null/)
+  assert.match(skill, /验证成功后最终文件不可变/)
 })
 
 test('parses and validates the full v2 positive fixture with restricted Draft-07', () => {

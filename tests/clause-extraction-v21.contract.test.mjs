@@ -44,11 +44,14 @@ function semanticHold(artifact) {
   return x.parts.some(part => !part.delivered && x.coverage.some(row => row.status === 'not_present'))
 }
 
-test('prepares v2.1 without routing or tool-authority expansion', () => {
+test('retains v2.1 evidence rules while structural validation cannot schedule children', () => {
   assert.equal(agent.llm.routingMode, 'smart')
   assert.ok(agent.tool_permissions.denied.includes('Bash'))
-  assert.ok(!agent.tool_permissions.allowed.includes('StructuredFileValidate'))
-  assert.match(skill, /StructuredFileValidate.*not currently registered/)
+  assert.ok(agent.tool_permissions.allowed.includes('StructuredFileValidate'))
+  assert.ok(!agent.tool_permissions.allowed.includes('Delegate'))
+  assert.ok(!agent.tool_permissions.allowed.includes('SendMessage'))
+  assert.equal(agent.command_authority.enabled, false)
+  assert.match(skill, /Draft-07 document deliberately validates only bounded syntax and field shape/)
 })
 
 test('parses and validates the full v2.1 positive fixture with restricted Draft-07', () => {

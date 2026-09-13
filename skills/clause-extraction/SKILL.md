@@ -29,6 +29,8 @@ requires:
     - Glob
     - Grep
     - Write
+    - Edit
+    - StructuredFileValidate
     - MathCalc
     - GenerateUUID
     - UnderstandImage
@@ -38,7 +40,7 @@ metadata:
   updated_at: '2026-09-11'
   pipeline_stage: 3
   upstream: contract-intake
-  downstream: [risk-scanner, jurisdiction-auditor]
+  downstream: [contract-review-lead]
   ontology_ref: shared/resources/business-ontology/contract.yaml
 ---
 
@@ -53,7 +55,7 @@ metadata:
 
 单个 O2 抽取目标是在 **10 分钟内**完成可交接产物。这个时限约束执行方式如下，不能靠延长推理或等待模型自行收敛来规避：
 
-1. **先写盘，后交接。** E1 完成并确认绝对工作目录后，立即建立本次 extraction 的绝对产物路径；每完成一组 E 步骤就用 `Write` 原子更新同一个新产物文件。至少按 E1、E2–E5、E6–E9、E10 四个检查点落盘。只有最终文件写成功、可读回并包含完整 E1–E10 结构，且已获得并成功执行被显式授权的 v1a/v1b 校验后，才可发送 `handoff` 或 `SendMessage`；未注册、拒绝或失败时必须 HOLD，`handoff: null`；交接块只引用 `artifact_path`，不携带整份条款正文。
+1. **先写盘，后回传。** E1 完成并确认绝对工作目录后，立即建立本次 extraction 的绝对产物路径；每完成一组 E 步骤就用 `Write` 原子更新同一个新产物文件。至少按 E1、E2–E5、E6–E9、E10 四个检查点落盘。最终 ready 文件须在写入前已包含完整 E1–E10、确定的绝对 `lifecycle.handoff.artifact_path` 和 `to: contract-review-lead`；随后 `Read` 该 exact 文件，并以本 Skill 的 release-owned v2.2 schema 调用 `StructuredFileValidate`。只有公共结果 `success:true` 且 `valid:true` 时，才可把该文件的 `artifact_path`、交接数据、统计与 pending **作为同步调用的 return 值**交给 Lead。不得自行 `Delegate` 或 `SendMessage`；未注册、拒绝、失败或 `valid:false` 时必须 HOLD，`handoff: null`。
 2. **分块读取与精简正文。** 按 `frozen_baseline.page_range` 的部件和页段分块读取；每块只保留当前 E 步骤需要的短原文片段、稳定 ID 和 `{part, page, quote}` 证据。不要在上下文或交接块重复整份 3 页/多附件正文；条款全文留在落盘产物，交接只传统计、缺口和下游所需事实。
 3. **一次有界推理。** 依次完成 E1→E10，使用已经确认的 `confirmed[]`，不得重新跑输入治理或全文反复重读。每个 E 组只做一次抽取和一次针对硬字段的局部核对；禁止无界思考、循环改写同一 YAML、重复生成同一条款或为了“再确认一次”重新扫描全文。
 4. **到时如实收口。** 在 8 分钟时检查剩余 E 步骤和落盘状态，在 10 分钟前必须写入当前事实。若无法完成，保留已写产物，把未完成字段记为 `blank`/`blocked` 并写入对应 `failure_marks`，不得伪造完整 37 条或发送“已完成”回执；交接只能在产物结构和失败标记可被下游消费时进行，否则停在当前环节并报告超时。
@@ -63,7 +65,7 @@ metadata:
 ### 首写硬闸（必须先做，优先级高于本技能其余说明）
 
 模型不得把“准备写入”当作已经落盘。完成启动凭证读取后，先用一次 `GenerateUUID` 建立 `extraction_id`；完成第一次合同或冻结部件 `Read` 后，**下一次工具调用必须是 `Write`**：
-在 `workspace` 下建立本案唯一的绝对 `artifact_path`，先写入可读的 E1 身份/版本骨架（未确定字段使用 `blank`，不得等待完整分析）。除这一次 `GenerateUUID` 外，首次 `Write` 前禁止 `Grep`、`MathCalc`、第二次全文 `Read` 或长篇推理；不确定时先落盘再增量更新。
+在已确认位置建立本案唯一的绝对 `artifact_path`，先写入可读的 E1 身份/版本骨架（未确定字段使用 `blank`，不得等待完整分析）。团队同步运行时，先只对当前 team effective cwd 做 `Ls` 实际确认，并逐字使用入站 handoff 的 `case_id` 与本次真实 `GenerateUUID` 得到的 `extraction_id`，路径必须是 `<effective cwd>/members/clause-extractor/<case_id>/<extraction_id>/artifact/<extraction_id>.extraction.yaml`；不得猜测 member binding、从 task/文件名推断 case、写入 Lead 的 `contract-review/**`，也不为新父目录循环 `Ls` 或调用 shell。独立非 Team 运行保持自己的已确认 `workspace` 路径，不伪造 team 子树。除这一次 `GenerateUUID` 外，首次 `Write` 前禁止 `Grep`、`MathCalc`、第二次全文 `Read` 或长篇推理；不确定时先落盘再增量更新。
 
 之后每个 E 组最多允许一次局部读取和一次 `Write` 更新；同组的 `Grep.literals` 逐批固定字符串核验属于这一次局部核验，必须受其预算约束。任何新发现都写入既有产物，不得另起草稿。若距离启动已超过 8 分钟或模型无法在下一步完成当前 E 组，立即 `Write` 当前事实和 `failure_marks`（可为 `blank`/`blocked`），再停止本轮；不得继续扫描或重复规划。10 分钟后不得发起新的分析工具调用。
 
@@ -86,7 +88,7 @@ metadata:
 4. **`incomplete` 不是阴性。** 某项 `incomplete` 但已返回精确 locations 时，可以保留该条**已经命中的**逐字 quote 和实际位置；同时在对应 `failure_marks` 写明 `EXT-QUOTE-VERIFY-INCOMPLETE`、源 SHA-256、该位置及“位置枚举未完成”。不得说它已列尽全部位置，不得据它填 `not_found`、`not_present` 或任何穷尽性措辞。`incomplete` 没有可用位置、SHA-256 不同、预检失败或工具失败时，该项留为 `blank`/`blocked` 并登记同类欠账。
 5. **阴性结论要完整同源证据。** 只有同一冻结来源的相关 literals 都在完整返回中得到 `not_found`，并且已覆盖该字段组所需的全部冻结部件，才可把穷尽检索写入 `search_performed` 并考虑 `not_present`。只要任一项或任一部件为 `incomplete`、未核验、SHA 不同、超过 5 MiB 或未交付，就保留 `blank`/`blocked`，不缩小合同范围来换取阴性结论。
 6. **时间到即保留已证实事实。** 到 8 分钟时不再发起下一批或新的 Grep；先 `Write` 已 `matched` 的证据、已有 `incomplete` 的实际位置和全部未证实欠账，再按既有规则收口。超过 5 MiB 的源文件是工具能力限制，不是范围缩减理由：记录限制和待补证项，不谎称已完成该部件的检索。
-7. **产物归属不能共享。** 每轮只在本 Agent 已用 `Ls` 确认的 `workspace` 下创建唯一的 `<extraction_id>.extraction.yaml`。不得写入、覆盖或要求 lead workspace、共享 `<extraction_id>.extraction.yaml` 或其他 Agent 的路径；lead 只能消费最终交接返回的 `artifact_path`。
+7. **产物归属不能共享。** 团队同步运行时，每轮只可在已 `Ls` 确认的当前 team effective cwd 下，以入站 `case_id` 与本次真实 `extraction_id` 创建唯一 `members/clause-extractor/<case_id>/<extraction_id>/artifact/<extraction_id>.extraction.yaml`；独立非 Team 运行才在本 Agent 已确认的 `workspace` 下创建唯一文件。不得写入、覆盖或要求 Lead `contract-review/**`、共享 `<extraction_id>.extraction.yaml` 或其他 Agent 的路径；Lead 只能消费最终 return 的 `artifact_path`。
 
 ## 启动前置条件（不满足则拒绝启动）
 
@@ -932,11 +934,12 @@ failure_marks:
 ### 落盘
 
 ```
-<有效工作目录>/contract-review/<contract_object_id>/extraction/<extraction_id>.extraction.yaml
+Team sync: <实际确认的 team effective cwd>/members/clause-extractor/<入站 case_id>/<本次 extraction_id>/artifact/<extraction_id>.extraction.yaml
+独立运行: <本 Agent 已确认的 workspace>/contract-review/<contract_object_id>/extraction/<extraction_id>.extraction.yaml
 ```
 
-`<有效工作目录>` 用 `Ls` 实际确认后使用绝对路径，**不要在提示词或产物里写死任何用户主目录字面量**。该路径必须是本 Agent 的确认 workspace；不得改写或复用 lead workspace、共享 `<extraction_id>.extraction.yaml` 或任何其他 Agent 产物。
-先创建新的绝对路径并写入最小身份/版本骨架，再按 E1、E2–E5、E6–E9、E10 检查点原子更新；写入失败必须停止，不得只在上下文中保留结果。最终 `Read` 回读成功、结构完整且 `failure_marks`/`coverage` 已落盘后仍必须先完成已授权的 v1a/v1b；目前该能力未注册，故必须保持 HOLD 与 `handoff: null`。交接块只传 `artifact_path`、统计和待确认项，不复制整份条款正文。
+团队 sync 的 `<实际确认的 team effective cwd>` 必须用当前 effective cwd 的 `Ls` 实际确认；case_id 只逐字复用完整入站 handoff，extraction_id 只使用本次真实 `GenerateUUID` 返回值（可保留既有 `EXTRACT-` 固定前缀），不得从 task、路径或旧回执推导。**不要在提示词或产物里写死任何用户主目录字面量**。团队路径必须位于 member-owned `members/clause-extractor/.../artifact/`，不得改写或复用 Lead `contract-review/**`、共享 `<extraction_id>.extraction.yaml` 或任何其他 Agent 产物；独立非 Team 运行保持本 Agent 的确认 workspace。
+先创建新的绝对路径并写入最小身份/版本骨架，再按 E1、E2–E5、E6–E9、E10 检查点原子更新；写入失败必须停止，不得只在上下文中保留结果。最终 `ready_for_handoff` 文件必须先带确定的本文件绝对 `artifact_path` 与唯一 `to: contract-review-lead`，然后完整 `Read` 回读，并以 `${SKILL_DIR}/references/clause-extraction-artifact-v22.schema.json` 调用 `StructuredFileValidate(document_path: <exact artifact>, schema_path: <exact release-owned schema>, format: yaml)`。只接受公共 `success:true` 与 `valid:true`；`valid:false` 允许一次本 Agent `Edit` 修复，修复后必须重新 `Read` 和重验。第二次不匹配、Read/工具/范围/512 KiB/8,000 nodes/depth 64 失败时，保留实际 code，写 `blocked` 或 `partial` 与 `handoff: null`，并 return HOLD 事实给同步 Lead。验证成功后最终文件不可变；任何后续 `Write`/`Edit` 都使旧结果失效，必须重新 Read 和验证。不得把返回 hash、模型自述或 `valid` 字段写进业务产物。
 旧产物**保留不覆盖**——规则或解析器更新后要靠它们做历史回放与差异对比。
 `parser_revision` 变化后旧产物一律作废重抽，不做增量修补。
 
@@ -946,7 +949,7 @@ failure_marks:
 
 所有机器消费的 YAML 必须使用块式映射和块式序列；禁止非空 flow map 与 flow sequence。唯一可复制的 v2 顶层 authoring skeleton 是 `templates/clause-extraction-artifact.yaml`，最终产物为 `<extraction_id>.extraction.yaml`，不再使用历史 `clauses.yaml` 或 1.0.1 shape。
 
-v2 的 E2–E10 明细在 `payloads` 下以字段组名键入；每个字段组都必须存在且是严格 evidence-carrying records。不可把未交付部件删除、把 quote 失败改成阴性结论，或把任何 local YAML/JSON/Ajv 检查当作运行时工具事实。当前 `StructuredFileValidate` 不可用时，最终状态只能 `blocked` 或 `partial` 且 `lifecycle.handoff: null`。
+v2 的 E2–E10 明细在 `payloads` 下以字段组名键入；每个字段组都必须存在且是严格 evidence-carrying records。不可把未交付部件删除、把 quote 失败改成阴性结论，或把任何 local YAML/JSON/Ajv 检查当作运行时工具事实。`StructuredFileValidate` 只验证单个 YAML 的受限 Draft-07 结构，不证明来源、跨记录相等、quote、DOCX provenance、法律结论或 Human Gate；`success:true, valid:true` 只解除本 Agent 的结构闸门。工具失败或 `valid:false` 时最终状态只能 `blocked` 或 `partial` 且 `lifecycle.handoff: null`。
 
 ### 每条产物记录的强制字段（缺任一该条不合格）
 
@@ -974,27 +977,17 @@ v2 的 E2–E10 明细在 `payloads` 下以字段组名键入；每个字段组�
 骨架与上游 `contract-intake` 同构（`to` / `from` / `object` / `confirmed` / `pending` /
 `scope` / `do_not_pass`），便于全链路统一消费与回放。
 
-### 收件方与投递方式
+### 唯一回传方与方式
 
-| 收件方 | 方式 | 内容 |
-|---|---|---|
-| `risk-scanner` | `Delegate`（`mode: fan-out`, `strategy: parallel`） | 完整交接块 |
-| `jurisdiction-auditor` | 同上，并行 | 完整交接块 |
-| `contract-review-lead` | `SendMessage` | 完成回报 + 产物路径 + `stats` |
-| `review-reporter` | **不投递** | —— 见下方警告 |
+本 Agent 不调度下游。`contract-review-lead` 是唯一的 O2/O3 编排、账本和派发责任方；本 Agent 只在其 `Delegate(mode: sync)` 返回后，将下列交接数据作为同步结果返回给调用方。不得调用 `Delegate`、`SendMessage` 或任何下游 Agent；不得把 task 裸字段、文件名或旧摘要当作交接身份。
 
-> ⚠️ **`review-reporter` 不在收件名单里，这是刻意的。**蓝本第二节要求复核 Agent
-> "基于原文与结构化事实重新判断，**不读前序推理**"。最干净的保证不是"发一份贫瘠的交接"，
-> 而是**根本没有这条通道**——它由组长告知产物路径后自行从磁盘读取。
-> 不得用 `Delegate` / `SendMessage` 绕过这一点。
+最终 return 只包含这一个已验证产物的绝对 `artifact_path`、下列结构化 `handoff`、`stats`、`failure_marks` 与 `pending`。不附对话历史、推理过程、中间草稿、opaque canonical Read ref、工具 hash 或模型自述的校验结论。
 
-> ⚠️ 复核环节**禁止**用 `Delegate` 的 `subtask` 模式：它继承完整对话历史，正好违背独立复核约束。
-
-### 交接块结构
+### 回传数据结构
 
 ```yaml
 handoff:
-  to: [risk-scanner, jurisdiction-auditor]
+  to: contract-review-lead
   from: clause-extractor
   extraction_id: EXTRACT-20260331-4b81ce07
   artifact_path: /abs/path/.../EXTRACT-20260331-4b81ce07.extraction.yaml
@@ -1057,9 +1050,9 @@ handoff:
     in_scope_completed:
       - 条款抽取（条款号 / 定义 / 金额 / 付款 / 期限 / 解除 / 争议解决），保留来源页码
     out_of_scope:
-      - 风险打分与市场标尺比对（属 risk-scanner）
-      - 法域规则匹配与冲突判定（属 jurisdiction-auditor）
-      - 最终评分、动作建议与 Human Gate 判定（属 review-reporter）
+      - 风险打分与市场标尺比对（由 Lead 派发 risk-scanner）
+      - 法域规则匹配与冲突判定（由 Lead 派发 jurisdiction-auditor）
+      - 最终评分、动作建议与 Human Gate 判定（由 Lead 派发 review-reporter）
     frozen_baseline:
       # use the v2 block mapping from the canonical template; do not inline flow YAML
     consistency_conclusion_allowed: false # 原样透传
@@ -1078,7 +1071,7 @@ handoff:
     - 任何未经 evidence 锚定的判断
 ```
 
-**交接方式硬规则**：引用的所有文件必须写**绝对路径**——下游 Agent 的工作目录与你不同。
+**回传硬规则**：引用的所有文件必须写**绝对路径**；只有最终文件已经 `Read` 且 `StructuredFileValidate` 返回 `success:true, valid:true` 后，才能 return。Lead 必须仍按 O2 同调用 Compose 和既有 RC/HG 验收，不能把本回传替代 Compose。
 
 ---
 
@@ -1156,8 +1149,8 @@ handoff:
 - [ ] `consistency_conclusion_allowed` 原样透传，未置 `true`
 - [ ] 为 `false` 时，全文（产物 + 交接块 + 面向人的回复）没有出现
       "一致 / 无差异 / 差异为 0 / 相同 / 没有变化"
-- [ ] 收件方只有 `risk-scanner` 与 `jurisdiction-auditor`，**没有向 `review-reporter` 投递**
-- [ ] 没有使用 `subtask` 模式
+- [ ] 唯一回传方是同步调用的 `contract-review-lead`；没有向 `risk-scanner`、`jurisdiction-auditor` 或 `review-reporter` 投递
+- [ ] 没有调用 `Delegate`、`SendMessage`、`subtask` 或创建第二条调度路径
 - [ ] 所有文件引用都是绝对路径
 - [ ] 产物落盘路径是实际确认过的工作目录，没有写死任何用户主目录字面量
 - [ ] 旧产物未被覆盖
@@ -1166,26 +1159,26 @@ handoff:
 
 `clause-extraction@1.0.8` introduces a breaking machine-consumed artifact contract. Its authoritative self-described restricted Draft-07 text is `schemas/clause-extraction-artifact.schema.json`; author from `templates/clause-extraction-artifact.yaml`, whose free-text values use one block scalar or one complete quoted scalar. Never concatenate a quoted scalar with prose. The old 1.0.7 artifact shape is not valid input for this contract; Lead must negotiate/consume this version explicitly and never mix both versions in one O2 acceptance.
 
-`frozen_baseline.baseline_version` is `1`; its bounded logical part map is represented as `parts[]`, keyed by stable `id`, max 64 entries. Each delivered member is at most 5 MiB for Grep and records its own FileDigest SHA-256/size; aggregate hashes never replace member hashes. `delivered: false` retains the part with `sha256: null` and `size_bytes: null`, plus `part_not_delivered`; related coverage is `blank` or `blocked`, never `not_present`. Artifact bytes must remain within proposed v1a 1 MiB/20,000 nodes; schema text within proposed v1b 32 KiB/1,024 schema nodes; existing Grep 64/2KiB/16KiB/5MiB/64MiB limits still apply.
+`frozen_baseline.baseline_version` is `1`; its bounded logical part map is represented as `parts[]`, keyed by stable `id`, max 64 entries. Each delivered member is at most 5 MiB for Grep and records its own FileDigest SHA-256/size; aggregate hashes never replace member hashes. `delivered: false` retains the part with `sha256: null` and `size_bytes: null`, plus `part_not_delivered`; related coverage is `blank` or `blocked`, never `not_present`. Existing Grep 64/2KiB/16KiB/5MiB/64MiB limits still apply. The final YAML must also stay within the actual `StructuredFileValidate` ceiling: at most 512 KiB, 8,000 nodes and depth 64; the copied release schema must stay within 64 KiB. These are hard ceilings, not targets: an over-budget complete artifact is HOLD, never a reason to delete evidence or weaken the contract.
 
-`StructuredFileValidate` is not currently registered or allow-listed for this Agent. Do not claim YAML parse or schema success today. Once the reviewed generic v1a/v1b capability is actually available and explicitly granted, validate the exact final artifact first with v1a and then v1b using the exact release-pinned schema text. Any unavailable/denied/failed/over-budget result is `blocked` with `EXT-STRUCTURED-VALIDATION-UNAVAILABLE` or its returned code, `handoff: null`, and no passed claim.
+`StructuredFileValidate` is registered and allow-listed for this Agent. Before its first use in a run, `Read` the exact release-owned schema at `${SKILL_DIR}/references/clause-extraction-artifact-v22.schema.json`; it is a byte-identical copy of `schemas/clause-extraction-artifact-v22.schema.json` and must retain SHA-256 `0349796015a208240887dc772795edde76c42552fbf61fc788769d07fad5c24f`. After writing the final ready artifact, `Read` that exact artifact and call `StructuredFileValidate` with `format: yaml`. Only public `success:true` plus `valid:true` permits return to the synchronous Lead caller. `valid:false` permits exactly one own repair, then another exact Read and validation. Any unavailable/denied/failed/over-budget result or second mismatch is `blocked` with the returned code, `handoff: null`, and no passed claim.
 
 A receiving Lead must independently validate exact artifact bytes, FileDigest every delivered frozen member, and native `Grep.literals` every non-empty quote before RC/O3. It must re-evaluate every `not_present` from complete same-source `not_found` results. The required 19 coverage field groups occur exactly once in the pre-generated catalog; schema structure alone cannot prove this cross-record invariant. It must also compare `frozen_baseline.parts`, `parts`, and `part_count` as one bounded map: every stable `id` occurs once in each map, has identical source/page/delivery values, and a false-delivery member keeps its typed debt. `coverage`/`failure_marks` carry the semantic association between that debt and `blank`/`blocked`. Unreadable artifact/source or failed validation is HOLD, never summary acceptance. Rework follows existing O2 policy unchanged: terminal nonconformance only, same trusted binding and `contextMode: continue`, at most two reworks; active/unknown waits and missing/mismatched binding is H.
 
-The Draft-07 document deliberately validates only bounded syntax and field shape. It cannot establish source provenance, SHA equality with live FileDigest output, native-Grep locations, quote byte equality, map equality, or exactly-once coverage; those are mandatory Agent/Lead checks above. Do not label an artifact `ready_for_handoff` merely because a future v1b schema check passes. The fixture corpus under `fixtures/structured-contract/expectations.json` distinguishes syntax/schema rejection from these semantic HOLD cases.
+The Draft-07 document deliberately validates only bounded syntax and field shape. It cannot establish source provenance, SHA equality with live FileDigest output, native-Grep locations, quote byte equality, map equality, or exactly-once coverage; those are mandatory Agent/Lead checks above. A structural pass cannot substitute for Lead's same-call Compose or RC/HG checks. `ready_for_handoff` is permitted only when its non-null handoff was already written into the exact final file and that final byte sequence was then Read and validated; after success it is immutable. The fixture corpus under `fixtures/structured-contract/expectations.json` distinguishes syntax/schema rejection from these semantic HOLD cases.
 
 ### v2.1 artifact contract
 
 Use only `schemas/clause-extraction-artifact-v21.schema.json` with `clause-extraction@1.0.9`; v2.0 remains independently supported and is never silently upgraded. The release catalog digest is the exact SHA-256 in `resources/absence-method-catalog/catalog.sha256`. Positive evidence consumers read `utf16_offsets: integer[]` from payload record evidence, coverage evidence, and ambiguity candidate evidence. `exact_quote: null` is excluded from positive quote verification. `absence_assessment` is only valid for coverage `not_present` or `blank`: `not_established` requires `blank` and non-empty debt; `not_present` requires the release fixed captured set and no debt. Consumers must not treat its claimed sources or semantic method as legal confirmation.
 
-### v2.2 DOCX canonical-text contract (candidate; not currently a production admission path)
+### v2.2 DOCX canonical-text contract (only when Lead explicitly selects the v2.3 current-parts path)
 
-Use only schemas/clause-extraction-artifact-v22.schema.json with clause-extraction@1.0.10. It is a sibling of v2.1; do not rewrite v2.1 artifacts, fixtures, schema bytes, or pins. v2.2 adds source_representations[]: exactly one declared representation for each delivered part and none for an undelivered part; all-undelivered uses [] and remains HOLD. source_sha256 and source_size_bytes always identify the original frozen file bytes. They never contain a derived-text digest. A text part uses original_text; a DOCX part uses canonical_text with exactly derived_text_sha256, text_offset_codec: utf16_code_unit, and derived_text_utf16_code_units.
+Use only schemas/clause-extraction-artifact-v22.schema.json with clause-extraction@1.0.10. It is a sibling of v2.1; do not rewrite v2.1 artifacts, fixtures, schema bytes, or pins. v2.2 adds source_representations[]: exactly one declared representation for each delivered part and none for an undelivered part; all-undelivered uses [] and remains HOLD. source_sha256 and source_size_bytes always identify the original frozen file bytes. They never contain a derived-text digest. A text part uses original_text; a DOCX part uses canonical_text with exactly derived_text_sha256, text_offset_codec: utf16_code_unit, and derived_text_utf16_code_units. This Agent may return a v2.2 artifact only after Lead has explicitly selected its published v2.3 current-parts admission path; this Agent's single-file structural validation is never that selection or admission.
 
 For a DOCX part, first use the registered generic canonical Read preparation. It returns a private opaque reference owned by this Agent, this conversation, and the exact optional Work Context. The reference is never an artifact field, handoff field, Lead input, filesystem path, or delegation capability. Read canonical text only by zero-based utf16_offset and utf16_limit; carry the returned original SHA/size, derived SHA, codec and continuous slice coordinates forward. Do not use ordinary path Read on DOCX as a fallback.
 
 Continue from the returned slice_utf16_end only when it strictly advances and does not split a surrogate pair; stop only at complete: true. If the reference expires, ownership/context fails, a range/budget error occurs, or the returned original/derived tuple changes, discard the partial canonical reading, reprepare, and restart from offset zero. If that cannot finish within the existing bounded run, retain the actual failure code as debt, set related records blank or blocked, and keep handoff: null.
 
-Positive DOCX evidence retains the existing three v2.1 paths and fields: payload record evidence, coverage evidence, and ambiguity candidate evidence. Each non-null quote is copied from canonical Read and has numeric utf16_offsets in that canonical representation. Do not use a line label or byte offset. exact_quote: null remains outside positive literal verification. This data declaration is not proof: it becomes machine-bound only when a registered, same-call generic Compose derived_source operand compares its closed worker provenance with this artifact. Until that operand, its release-owned rule pin, and final Compose are actually available and successful, v2.2 is HOLD; never use a model text comparison, ordinary Grep, or a schema pass as a substitute.
+Positive DOCX evidence retains the existing three v2.1 paths and fields: payload record evidence, coverage evidence, and ambiguity candidate evidence. Each non-null quote is copied from canonical Read and has numeric utf16_offsets in that canonical representation. Do not use a line label or byte offset. exact_quote: null remains outside positive literal verification. This data declaration is not proof: Lead alone must use the registered, same-call generic Compose derived_source operand to compare worker-private provenance with this artifact. Until Lead's release-owned rule pin and final Compose are actually successful, v2.2 is HOLD; never use a model text comparison, ordinary Grep, or this Agent's schema pass as a substitute.
 
 Receiving Lead must treat `source_representations` as an exact delivered-subset tuple map, never as self-authenticating provenance: for every and only each `parts[].delivered: true` member, require exactly one matching `part_id`, `source_name`, `format`, original `source_sha256`, and `source_size_bytes`, with the same values in `frozen_baseline.parts`; reject duplicates, extras, omissions, false-delivery entries, and any mismatch as HOLD. The future same-call Compose receipt must then independently bind the declared DOCX derived fields.
