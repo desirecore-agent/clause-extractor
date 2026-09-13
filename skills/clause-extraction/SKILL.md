@@ -12,7 +12,7 @@ description: >-
   Use when converting a gated contract into machine-consumable structured clauses with
   clause numbers and page anchors; extracts amounts in both Chinese words and figures,
   keeps ambiguity unresolved, and never normalizes uncertain values.
-version: 1.0.8
+version: 1.0.10
 type: procedural
 risk_level: low
 status: enabled
@@ -36,7 +36,7 @@ requires:
     - UnderstandImage
 metadata:
   author: DesireCore
-  version: 1.0.8
+  version: 1.0.10
   updated_at: '2026-09-11'
   pipeline_stage: 3
   upstream: contract-intake
