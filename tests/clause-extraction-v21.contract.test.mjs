@@ -10,6 +10,7 @@ const YAML = platformRequire('yaml')
 const Ajv = platformRequire('ajv')
 const agent = JSON.parse(readFileSync(new URL('agent.json', root), 'utf8'))
 const skill = readFileSync(new URL('skills/clause-extraction/SKILL.md', root), 'utf8')
+const legacyContracts = readFileSync(new URL('skills/clause-extraction/references/legacy-v2-v21-contracts.md', root), 'utf8')
 const schemaText = readFileSync(new URL('schemas/clause-extraction-artifact-v21.schema.json', root), 'utf8')
 const schema = JSON.parse(schemaText)
 const fixture = name => readFileSync(new URL(`fixtures/structured-contract/${name}`, root), 'utf8')
@@ -51,7 +52,8 @@ test('retains v2.1 evidence rules while structural validation cannot schedule ch
   assert.ok(!agent.tool_permissions.allowed.includes('Delegate'))
   assert.ok(!agent.tool_permissions.allowed.includes('SendMessage'))
   assert.equal(agent.command_authority.enabled, false)
-  assert.match(skill, /Draft-07 document deliberately validates only bounded syntax and field shape/)
+  assert.match(legacyContracts, /Draft-07 document deliberately validates only bounded syntax and field shape/)
+  assert.match(skill, /只有处理既存 v2\.0\/v2\.1 产物时才读取/)
 })
 
 test('parses and validates the full v2.1 positive fixture with restricted Draft-07', () => {

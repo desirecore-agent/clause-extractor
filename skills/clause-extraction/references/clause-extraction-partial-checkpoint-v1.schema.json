@@ -13,7 +13,7 @@
       "properties": {
         "case_id": {"type": "string", "minLength": 1, "description": "Exact case_id from the inbound handoff; it identifies the member-owned artifact path."},
         "extraction_id": {"type": "string", "minLength": 1, "description": "This run's actual GenerateUUID-derived extraction identifier."},
-        "skill": {"const": "clause-extraction@1.0.12", "description": "Identity of the actually loaded Clause skill, not a copied historical example."},
+        "skill": {"const": "clause-extraction@1.0.13", "description": "Identity of the actually loaded Clause skill, not a copied historical example."},
         "lifecycle": {
           "type": "object",
           "additionalProperties": false,

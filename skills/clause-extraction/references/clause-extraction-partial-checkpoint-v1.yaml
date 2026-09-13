@@ -1,7 +1,7 @@
 clause_extraction:
   case_id: "<inbound-handoff-case-id>"
   extraction_id: "<actual-generated-extraction-id>"
-  skill: "clause-extraction@1.0.12"
+  skill: "clause-extraction@1.0.13"
   lifecycle:
     state: partial
     handoff: null

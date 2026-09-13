@@ -148,7 +148,7 @@ v2.1 正向 quote 仅保存实际 Grep 返回的 `utf16_offsets` 数字；不得
 
 ### v2.2 DOCX canonical-text boundary
 
-clause-extraction@1.0.12 may author the v2.2 sibling contract only when the reviewed generic canonical Read preparation is registered and granted. A DOCX part keeps its original frozen byte SHA-256 and size. Its source_representations[] declaration has exactly one entry for each delivered part and no entry for an undelivered part; an all-undelivered artifact uses [] and remains HOLD. It records the source name, the canonical_text derived SHA-256, the singleton utf16_code_unit codec, and the UTF-16 code-unit length. It is Agent data, not a capability, a filesystem reference, or proof of derivation.
+clause-extraction@1.0.13 may author the v2.2 sibling contract only when the reviewed generic canonical Read preparation is registered and granted. A DOCX part keeps its original frozen byte SHA-256 and size. Its source_representations[] declaration has exactly one entry for each delivered part and no entry for an undelivered part; an all-undelivered artifact uses [] and remains HOLD. It records the source name, the canonical_text derived SHA-256, the singleton utf16_code_unit codec, and the UTF-16 code-unit length. It is Agent data, not a capability, a filesystem reference, or proof of derivation.
 
 The opaque canonical Read reference is private to this Clause Agent's trusted agent/conversation/exact-optional-Work-Context binding. Do not write it into the artifact, a receipt, failure detail, a handoff, or a message to Lead. Do not give it to another Agent. Ordinary Read(file_path: *.docx) remains an invalid replacement for canonical Read preparation.
 
