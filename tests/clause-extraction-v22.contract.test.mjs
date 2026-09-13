@@ -23,6 +23,7 @@ const parse = name => {
 }
 const bytes = readFileSync(new URL('schemas/clause-extraction-artifact-v22.schema.json', root))
 const skillSchemaBytes = readFileSync(new URL('skills/clause-extraction/references/clause-extraction-artifact-v22.schema.json', root))
+const v22Template = readFileSync(new URL('templates/clause-extraction-artifact-v22.yaml', root), 'utf8')
 const schema = JSON.parse(bytes)
 const allowed = new Set(['$schema', 'title', 'description', 'type', 'const', 'enum', 'properties', 'required', 'additionalProperties', 'items', 'minItems', 'maxItems', 'minLength', 'maxLength', 'minimum', 'maximum', 'allOf', 'anyOf', 'oneOf', 'not'])
 function checkSchemaShape(value, propertyNames = false) {
@@ -78,8 +79,10 @@ test('v2.2 keeps bounded Draft-07 syntax while declaring a DOCX canonical repres
   checkSchemaShape(schema)
   const validate = new Ajv({ strict: false }).compile(schema)
   const fixture = parse('valid-ready-v22-docx.yaml')
+  assert.equal(agent.version, frontmatterVersion)
   assert.equal(schema.properties.clause_extraction.properties.skill.const, v22SkillIdentity)
   assert.equal(fixture.clause_extraction.skill, v22SkillIdentity)
+  assert.match(v22Template, new RegExp(`skill: "${v22SkillIdentity}"`))
   assert.equal(fixture.clause_extraction.contract_schema.version, 22)
   assert.equal(validate(fixture), true, JSON.stringify(validate.errors))
   assert.equal(representationTupleConsistent(fixture), true)
@@ -95,7 +98,7 @@ test('v2.2 keeps bounded Draft-07 syntax while declaring a DOCX canonical repres
   }
 })
 test('uses the byte-pinned enabled-Skill schema and returns only to the synchronous Lead caller', () => {
-  assert.equal(createHash('sha256').update(bytes).digest('hex'), '0349796015a208240887dc772795edde76c42552fbf61fc788769d07fad5c24f')
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), 'eefb5fdd4e38e0aafb5527b69fbfa203d76a37b6caadf8831fa7408f9768a439')
   assert.deepEqual(skillSchemaBytes, bytes)
   assert.ok(agent.tool_permissions.allowed.includes('StructuredFileValidate'))
   assert.ok(!agent.tool_permissions.allowed.includes('StructuredFileValidateCompose'))
