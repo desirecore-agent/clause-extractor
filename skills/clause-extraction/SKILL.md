@@ -702,8 +702,8 @@ attachment_manifest:
 
 ### `attachment_references`（正文引用，逐次记录不去重）
 
-用 `Grep` 全量搜引用形态：`附件[一二三四五六七八九十\d]+`、`Exhibit [A-Z]`、
-`Schedule \d`、`Annex \w`、`Appendix \w`、`附表\w`。
+用 `Grep` 全量搜引用形态（`pattern` 加 `is_regex: true`）：`附件[一二三四五六七八九十\d]+`、`Exhibit [A-Z]`、
+`Schedule \d`、`Annex \w`、`Appendix \w`、`附表\w`。这不替代前述固定 quote 的原生 `Grep.literals` 批量核验。
 
 ```yaml
 attachment_references:
