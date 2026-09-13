@@ -1,0 +1,215 @@
+# clause-extraction@1.0.13 v2.2 incremental authoring scaffold.
+# This file is intentionally incomplete. It is never ready, never a handoff, and is not a substitute for the final schema.
+# Replace every placeholder from actual upstream/tool observations, fill every payload group and coverage row, then perform one final Read + SFV.
+clause_extraction:
+  extraction_id: "<actual-extraction-id>"
+  extracted_at: "<actual-ISO-8601>"
+  executed_by: clause-extractor
+  skill: "clause-extraction@1.0.13"
+  parser_revision: "<actual-parser-revision>"
+  ontology_version: "<actual-ontology-version>"
+  contract_schema:
+    name: clause-extraction-artifact
+    version: 22
+    sha256: fc5355dfc349bde3ff52e0b05171010f7b6d8db0d5d3811576baf02ae7090d3d
+  lifecycle:
+    state: partial
+    started_at: "<actual-ISO-8601>"
+    deadline_at: "<actual-ISO-8601>"
+    repair_attempt: 0
+    handoff: null
+  upstream:
+    from: contract-intake
+    intake_id: "<actual-intake-id>"
+    receipt_path: "<actual-absolute-receipt-path>"
+    verdict: "<passed-or-conditional>"
+    frozen_baseline:
+      master_version: "<actual-master-version>"
+      attachment_manifest_digest: null
+      page_range:
+        body: "<actual-page-range>"
+    consistency_conclusion_allowed: false
+  object:
+    contract_object_id: "<actual-object-id>"
+    object_title: "<actual-object-title>"
+    version_label: "<actual-version-label>"
+    submission_mode: "<actual-submission-mode>"
+    content_digest: "<actual-content-digest>"
+  frozen_baseline:
+    baseline_version: 1
+    part_limit: 64
+    parts: []
+  parts: []
+  part_count: 0
+  source_representations: []
+  payloads:
+    - group: parties
+      records: []
+    - group: definitions
+      records: []
+    - group: clauses
+      records: []
+    - group: monetary_terms
+      records: []
+    - group: payment_terms
+      records: []
+    - group: temporal_terms
+      records: []
+    - group: termination_grounds
+      records: []
+    - group: dispute_resolution
+      records: []
+    - group: governing_law
+      records: []
+    - group: liability
+      records: []
+    - group: attachment_manifest
+      records: []
+    - group: attachment_references
+      records: []
+    - group: attachment_reconciliation
+      records: []
+    - group: attachment_cross_version
+      records: []
+  coverage:
+    - field_group: parties
+      slug: parties
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: definitions
+      slug: definitions
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: clauses
+      slug: clauses
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: monetary
+      slug: monetary
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: payment
+      slug: payment
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: temporal
+      slug: temporal
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: termination
+      slug: termination
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: dispute
+      slug: dispute
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: governing
+      slug: governing
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: liability
+      slug: liability
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: attachment-manifest
+      slug: attachment-manifest
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: attachment-references
+      slug: attachment-references
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: attachment-reconciliation
+      slug: attachment-reconciliation
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: attachment-cross-version
+      slug: attachment-cross-version
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: execution
+      slug: execution
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: version
+      slug: version
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: identity
+      slug: identity
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: scope
+      slug: scope
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+    - field_group: ambiguities
+      slug: ambiguities
+      status: blank
+      evidence: []
+      debt_codes:
+        - EXT-PENDING
+      exhaustive: false
+  ambiguities: []
+  failure_marks: []
+  stats:
+    clauses_extracted: 0
+    coverage_covered: 0
+    coverage_not_present: 0
+    coverage_blank: 19
+    coverage_blocked: 0

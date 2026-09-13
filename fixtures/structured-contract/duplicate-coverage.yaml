@@ -1,0 +1,8 @@
+clause_extraction:
+  coverage:
+    - field_group: parties
+      slug: parties
+      status: covered
+    - field_group: parties
+      slug: parties
+      status: covered

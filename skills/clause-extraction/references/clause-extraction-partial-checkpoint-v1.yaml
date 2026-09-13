@@ -1,0 +1,34 @@
+clause_extraction:
+  case_id: "<inbound-handoff-case-id>"
+  extraction_id: "<actual-generated-extraction-id>"
+  skill: "clause-extraction@1.0.13"
+  lifecycle:
+    state: partial
+    handoff: null
+  upstream:
+    from: contract-intake
+    intake_id: "<inbound-intake-id>"
+    receipt_path: "<absolute-intake-receipt-path>"
+  frozen_baseline:
+    baseline_version: 1
+    part_limit: 64
+    parts:
+      - id: "<inbound-part-id>"
+        source: "<frozen-source-path>"
+        pages: "<frozen-page-range>"
+        delivered: true
+        size_bytes: 1
+        sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        part_not_delivered: null
+        source_name: "body"
+        format: text
+  checkpoint:
+    artifact_path: "<this-absolute-member-owned-artifact-path>"
+    completed_groups: []
+    remaining_groups:
+      - E1
+      - E2-E5
+      - E6-E9
+      - E10
+  failure_marks:
+    - code: "CHECKPOINT-PARTIAL"

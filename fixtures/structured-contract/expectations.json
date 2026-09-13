@@ -1,0 +1,96 @@
+{
+  "description": "Offline corpus for Agent-owned v2 contract validation. syntax/schema are future v1a/v1b expectations; semantic outcomes remain rule-level review obligations.",
+  "fixtures": [
+    {
+      "file": "valid-skeleton.yaml",
+      "syntax": "valid",
+      "schema": "not-final",
+      "semantic": "partial",
+      "reason": "authoring skeleton deliberately omits material values and cannot be handed off"
+    },
+    {
+      "file": "invalid-quoted-suffix.yaml",
+      "syntax": "invalid",
+      "schema": "not-run",
+      "semantic": "hold",
+      "reason": "a quoted YAML scalar cannot have an unseparated suffix"
+    },
+    {
+      "file": "unknown-field.yaml",
+      "syntax": "valid",
+      "schema": "invalid",
+      "semantic": "hold",
+      "reason": "additionalProperties is false at the v2 root"
+    },
+    {
+      "file": "missing-upstream.yaml",
+      "syntax": "valid",
+      "schema": "invalid",
+      "semantic": "hold",
+      "reason": "intake binding and frozen baseline are required"
+    },
+    {
+      "file": "missing-source-digest.yaml",
+      "syntax": "valid",
+      "schema": "not-final",
+      "semantic": "hold",
+      "reason": "a delivered frozen member requires its SHA-256 and byte size"
+    },
+    {
+      "file": "undelivered-part.yaml",
+      "syntax": "valid",
+      "schema": "invalid-fragment",
+      "semantic": "hold",
+      "reason": "undelivered parts retain null digest/size and a typed part_not_delivered debt; related coverage cannot be not_present"
+    },
+    {
+      "file": "unverified-quote.yaml",
+      "syntax": "valid",
+      "schema": "not-final",
+      "semantic": "hold",
+      "reason": "a non-empty quote requires same-source native Grep matched location and SHA evidence"
+    },
+    {
+      "file": "missing-coverage.yaml",
+      "syntax": "valid",
+      "schema": "invalid",
+      "semantic": "hold",
+      "reason": "the final artifact requires at least the catalogued coverage rows"
+    },
+    {
+      "file": "duplicate-coverage.yaml",
+      "syntax": "valid",
+      "schema": "not-final",
+      "semantic": "hold",
+      "reason": "exactly-once field-group ownership is a Lead semantic invariant"
+    },
+    {
+      "file": "valid-ready.yaml",
+      "syntax": "valid",
+      "schema": "valid",
+      "semantic": "ready",
+      "reason": "complete future-ready structural fixture"
+    },
+    {
+      "file": "invalid-ready-null-handoff.yaml",
+      "syntax": "valid",
+      "schema": "invalid",
+      "semantic": "hold",
+      "reason": "ready_for_handoff requires a non-null handoff"
+    },
+    {
+      "file": "invalid-baseline-count.yaml",
+      "syntax": "valid",
+      "schema": "valid",
+      "semantic": "hold",
+      "reason": "part_count and both bounded part maps must agree"
+    },
+    {
+      "file": "invalid-duplicate-key.yaml",
+      "syntax": "invalid",
+      "schema": "not-run",
+      "semantic": "hold",
+      "reason": "duplicate YAML keys are rejected by parseDocument uniqueKeys"
+    }
+  ]
+}
