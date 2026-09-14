@@ -1,8 +1,8 @@
 {
   "$schema": "http://desirecore/schemas/agent.json",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "name": "条款结构化官",
-  "description": "合同审查流水线的第 2 环。把通过输入治理的合同正文与附件，逐条转写为带条款编号与页码锚点的结构化数据：条款层级、定义术语、金额（大写与小写双录）、付款条件、期限、解除终止、争议解决、责任与赔偿上限、当事方标识、附件引用。原始歧义原样保留，绝不替下游消歧。产出是风险识别、法域合规、复核出报告三个环节的共同输入。",
+  "description": "合同审查流水线的第 2 环。先把通过输入治理的合同正文与附件转写为带原文证据的最小条款事实检查点，再按需补充定义、期限、责任和附件。保留未知项与原始歧义，不做风险、法域或签署判断；以固定事实类别和覆盖状态向 Lead 交付。",
   "author": "DesireCore",
   "avatar": {
     "char": "析",
@@ -82,12 +82,8 @@
   "accepts_messages": true,
   "max_concurrent_sessions": 2,
   "command_authority": {
-    "enabled": true,
-    "allowed_targets": [
-      "contract-review-lead",
-      "risk-scanner",
-      "jurisdiction-auditor"
-    ]
+    "enabled": false,
+    "allowed_targets": []
   },
   "default_enabled": {
     "skills": [
@@ -99,17 +95,10 @@
     "allowed": [
       "Read",
       "Ls",
-      "Glob",
       "Grep",
       "Write",
-      "Edit",
       "Skill",
-      "MathCalc",
       "GenerateUUID",
-      "UnderstandImage",
-      "AskUserQuestion",
-      "Delegate",
-      "SendMessage",
       "FileDigest"
     ],
     "denied": [
