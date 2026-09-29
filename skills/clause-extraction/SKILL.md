@@ -59,7 +59,7 @@ metadata:
 1. 读取上游 handoff、冻结清单和有效工作目录；用 GenerateUUID 生成本次 extraction_id。
 2. 读取冻结清单中的正文和附件。只保留与以下最小类别有关的原文：当事方、标的/数量、价格/金额、交付与验收、付款、解除/终止、争议解决、准据法、责任/赔偿、附件引用。
 3. 只使用 Lead 核验并传入的本次 case/object/version/run 的绝对 `canonical_artifact_root`；它已包含对象身份，不再追加 case_id 或 workspace。缺失或未授权时返回路径欠账，不自行选择目录。写入新的工件，不覆盖旧文件：
-   <canonical_artifact_root>/clause-extraction/<extraction_id>.yaml
+   <canonical_artifact_root>/clause-extraction/<extraction_id>.checkpoint.yaml
 4. 该检查点至少包含每个最小类别的一行事实或一行带原因的 unknown / blocked，并包含 source、page（若材料没有页码则写 unknown）和逐字 quote。写入后立即 Read 回读。
 
 第一次检查点的验收 KPI：Lead 能只靠这一个文件继续安排下游；已抽取事实有来源身份和原文短引；未完成项没有被伪装成完成。
@@ -67,6 +67,8 @@ metadata:
 ### 第二次：有界丰富抽取
 
 在检查点已落盘后，再补充定义术语、更多期限、责任可比较字段、附件清单与正文引用、金额大写/小写双录、歧义和检索欠账。按有界批次读取；候选上限只限制本批产出，不缩减固定类别分母。丰富结果写入新文件，禁止覆盖或追加修改不可变 checkpoint，也不要为了追求“完整”反复重扫全文。
+
+丰富结果固定写入 `<canonical_artifact_root>/clause-extraction/<extraction_id>.enriched.yaml`，最终机器摘要写入 `<canonical_artifact_root>/clause-extraction/<extraction_id>.receipt.yaml`；三者使用同一 extraction_id，receipt 分别引用 checkpoint/enriched 的实际绝对路径。未完成丰富段时 enriched 路径为空且 receipt 明示 partial，不改写 checkpoint。
 
 第二次结束时：
 
