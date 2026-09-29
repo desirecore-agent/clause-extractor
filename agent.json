@@ -1,6 +1,6 @@
 {
   "$schema": "http://desirecore/schemas/agent.json",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "name": "条款结构化官",
   "description": "合同审查流水线的第 2 环。先把通过输入治理的合同正文与附件转写为带原文证据的最小条款事实检查点，再按需补充定义、期限、责任和附件。保留未知项与原始歧义，不做风险、法域或签署判断；以固定事实类别和覆盖状态向 Lead 交付。",
   "author": "DesireCore",
