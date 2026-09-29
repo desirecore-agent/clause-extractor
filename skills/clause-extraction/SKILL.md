@@ -58,8 +58,8 @@ metadata:
 
 1. 读取上游 handoff、冻结清单和有效工作目录；用 GenerateUUID 生成本次 extraction_id。
 2. 读取冻结清单中的正文和附件。只保留与以下最小类别有关的原文：当事方、标的/数量、价格/金额、交付与验收、付款、解除/终止、争议解决、准据法、责任/赔偿、附件引用。
-3. 立刻在实际确认的 workspace 下写入一个新的工件，不覆盖旧文件：
-   <workspace>/contract-review/<case_id>/clause-extraction/<extraction_id>.yaml
+3. 只使用 Lead 核验并传入的本次 case/object/version/run 的绝对 `canonical_artifact_root`；它已包含对象身份，不再追加 case_id 或 workspace。缺失或未授权时返回路径欠账，不自行选择目录。写入新的工件，不覆盖旧文件：
+   <canonical_artifact_root>/clause-extraction/<extraction_id>.yaml
 4. 该检查点至少包含每个最小类别的一行事实或一行带原因的 unknown / blocked，并包含 source、page（若材料没有页码则写 unknown）和逐字 quote。写入后立即 Read 回读。
 
 第一次检查点的验收 KPI：Lead 能只靠这一个文件继续安排下游；已抽取事实有来源身份和原文短引；未完成项没有被伪装成完成。
